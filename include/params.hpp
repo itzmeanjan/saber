@@ -1,4 +1,5 @@
 #pragma once
+#include <bit>
 #include <cstdint>
 #include <type_traits>
 
@@ -14,6 +15,16 @@ is_power_of_2(const T val)
   requires(std::is_unsigned_v<T>)
 {
   return !static_cast<bool>(val & (val - 1));
+}
+
+// Given an unsigned power of 2 integer value, this routine can be used for
+// computing logarithm base 2.
+template<typename T>
+inline constexpr T
+log2(const T val)
+  requires(std::is_unsigned_v<T>)
+{
+  return std::countr_zero(val);
 }
 
 }
