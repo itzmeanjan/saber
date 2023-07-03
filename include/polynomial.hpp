@@ -1,7 +1,6 @@
 #pragma once
 #include "zq.hpp"
 #include <array>
-#include <cstddef>
 
 // Operations defined over quotient ring Rq
 namespace polynomial {
@@ -34,6 +33,30 @@ public:
 
   // Compound addition of two polynomials s.t. their coefficients are over Zq.
   inline constexpr void operator+=(const poly_t& rhs) { *this = *this + rhs; }
+
+  // Left shift each coefficient of the polynomial by factor `off`.
+  inline constexpr poly_t operator<<(const size_t off) const
+  {
+    std::array<zq::zq_t, N> res{};
+
+    for (size_t i = 0; i < N; i++) {
+      res[i] = this->coeffs[i] << off;
+    }
+
+    return res;
+  }
+
+  // Right shift each coefficient of the polynomial by factor `off`.
+  inline constexpr poly_t operator>>(const size_t off) const
+  {
+    std::array<zq::zq_t, N> res{};
+
+    for (size_t i = 0; i < N; i++) {
+      res[i] = this->coeffs[i] >> off;
+    }
+
+    return res;
+  }
 };
 
 }
