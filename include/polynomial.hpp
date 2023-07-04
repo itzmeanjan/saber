@@ -24,7 +24,7 @@ public:
 
   // Given a byte array of length log2(moduli) * 32 -bytes, this routine can be
   // used for transforming it into a polynomial, following algorithm 9 of spec.
-  inline explicit constexpr poly_t(const uint8_t* const bstr)
+  inline explicit poly_t(const uint8_t* const bstr)
   {
     constexpr size_t lg2_moduli = saber_params::log2(moduli);
     constexpr size_t blen = (lg2_moduli * N) / 8;
@@ -93,7 +93,7 @@ public:
         coff += 4;
       }
     } else if constexpr (lg2_moduli == 4) {
-      constexpr uint8_t mask = 0x0f;
+      constexpr uint8_t mask = (1u << lg2_moduli) - 1;
 
       size_t boff = 0;
       size_t coff = 0;
@@ -137,7 +137,7 @@ public:
     std::array<zq::zq_t, N> res{};
 
     for (size_t i = 0; i < N; i++) {
-      res[i] = this->coeffs[i] + rhs.coeffs[i];
+      res[i] = coeffs[i] + rhs.coeffs[i];
     }
 
     return res;
@@ -152,7 +152,7 @@ public:
     std::array<zq::zq_t, N> res{};
 
     for (size_t i = 0; i < N; i++) {
-      res[i] = this->coeffs[i] << off;
+      res[i] = coeffs[i] << off;
     }
 
     return res;
@@ -164,10 +164,134 @@ public:
     std::array<zq::zq_t, N> res{};
 
     for (size_t i = 0; i < N; i++) {
-      res[i] = this->coeffs[i] >> off;
+      res[i] = coeffs[i] >> off;
     }
 
     return res;
+  }
+
+  // Given a polynomial, this routine can transform it into a byte string of
+  // length log2(moduli) * 32, following algorithm 10 of spec.
+  inline void to_bytes(uint8_t* const bstr)
+  {
+    constexpr size_t lg2_moduli = saber_params::log2(moduli);
+
+    if constexpr (lg2_moduli == 13) {
+      constexpr uint16_t mask8 = 0xff;
+      constexpr uint16_t mask7 = mask8 >> 1;
+      constexpr uint16_t mask6 = mask7 >> 1;
+      constexpr uint16_t mask5 = mask6 >> 1;
+      constexpr uint16_t mask4 = mask5 >> 1;
+      constexpr uint16_t mask3 = mask4 >> 1;
+      constexpr uint16_t mask2 = mask3 >> 1;
+      constexpr uint16_t mask1 = mask2 >> 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = coeffs[coff].as_raw() & mask8;
+        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask3) << 5) |
+                         ((coeffs[coff].as_raw() >> 8) & mask5);
+        bstr[boff + 2] = ((coeffs[coff + 1].as_raw() >> 3) & mask8);
+        bstr[boff + 3] = ((coeffs[coff + 2].as_raw() & mask6) << 2) |
+                         ((coeffs[coff + 1].as_raw() >> 11) & mask2);
+        bstr[boff + 4] = ((coeffs[coff + 3].as_raw() & mask1) << 7) |
+                         ((coeffs[coff + 2].as_raw() >> 6) & mask7);
+        bstr[boff + 5] = (coeffs[coff + 3].as_raw() >> 1) & mask8;
+        bstr[boff + 6] = ((coeffs[coff + 4].as_raw() & mask4) << 4) |
+                         ((coeffs[coff + 3].as_raw() >> 9) & mask4);
+        bstr[boff + 7] = (coeffs[coff + 4].as_raw() >> 4) & mask8;
+        bstr[boff + 8] = ((coeffs[coff + 5].as_raw() & mask7) << 1) |
+                         ((coeffs[coff + 4].as_raw() >> 12) & mask1);
+        bstr[boff + 9] = ((coeffs[coff + 6].as_raw() & mask2) << 6) |
+                         ((coeffs[coff + 5].as_raw() >> 7) & mask6);
+        bstr[boff + 10] = (coeffs[coff + 6].as_raw() >> 2) & mask8;
+        bstr[boff + 11] = ((coeffs[coff + 7].as_raw() & mask5) << 3) |
+                          ((coeffs[coff + 6].as_raw() >> 10) & mask3);
+        bstr[boff + 12] = (coeffs[coff + 7].as_raw() >> 5) & mask8;
+
+        boff += 13;
+        coff += 8;
+      }
+    } else if constexpr (lg2_moduli == 10) {
+      constexpr uint16_t mask8 = 0xff;
+      constexpr uint16_t mask6 = mask8 >> 2;
+      constexpr uint16_t mask4 = mask6 >> 2;
+      constexpr uint16_t mask2 = mask4 >> 2;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = coeffs[coff].as_raw() & mask8;
+        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask6) << 2) |
+                         ((coeffs[coff].as_raw() >> 8) & mask2);
+        bstr[boff + 2] = ((coeffs[coff + 2].as_raw() & mask4) << 4) |
+                         ((coeffs[coff + 1].as_raw() >> 6) & mask4);
+        bstr[boff + 3] = ((coeffs[coff + 3].as_raw() & mask2) << 6) |
+                         ((coeffs[coff + 2].as_raw() >> 4) & mask6);
+        bstr[boff + 4] = (coeffs[coff + 3].as_raw() >> 2) & mask8;
+
+        boff += 5;
+        coff += 4;
+      }
+    } else if constexpr (lg2_moduli == 6) {
+      constexpr uint16_t mask6 = (1u << lg2_moduli) - 1;
+      constexpr uint16_t mask4 = mask6 >> 2;
+      constexpr uint16_t mask2 = mask4 >> 2;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask2) << 6) |
+                     (coeffs[coff].as_raw() & mask6);
+        bstr[boff + 1] = ((coeffs[coff + 2].as_raw() & mask4) << 4) |
+                         ((coeffs[coff + 1].as_raw() >> 2) & mask4);
+        bstr[boff + 2] = ((coeffs[coff + 3].as_raw() & mask6) << 2) |
+                         ((coeffs[coff + 2].as_raw() >> 4) & mask2);
+
+        boff += 3;
+        coff += 4;
+      }
+    } else if constexpr (lg2_moduli == 4) {
+      constexpr uint8_t mask = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask) << 4) |
+                     (coeffs[coff].as_raw() & mask);
+
+        boff += 1;
+        coff += 2;
+      }
+    } else if constexpr (lg2_moduli == 3) {
+      constexpr uint16_t mask3 = (1u << lg2_moduli) - 1;
+      constexpr uint16_t mask2 = mask3 >> 1;
+      constexpr uint16_t mask1 = mask2 >> 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 2].as_raw() & mask2) << 6) |
+                     ((coeffs[coff + 1].as_raw() & mask3) << 3) |
+                     (coeffs[coff].as_raw() & mask3);
+        bstr[boff + 1] = ((coeffs[coff + 5].as_raw() & mask1) << 7) |
+                         ((coeffs[coff + 4].as_raw() & mask3) << 4) |
+                         ((coeffs[coff + 3].as_raw() & mask3) << 1) |
+                         ((coeffs[coff + 2].as_raw() >> 2) & mask1);
+        bstr[boff + 2] = ((coeffs[coff + 7].as_raw() & mask3) << 5) |
+                         ((coeffs[coff + 6].as_raw() & mask3) << 2) |
+                         ((coeffs[coff + 5].as_raw() >> 1) & mask2);
+
+        boff += 3;
+        coff += 8;
+      }
+    }
   }
 };
 
