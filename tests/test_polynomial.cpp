@@ -18,10 +18,10 @@ test_poly_conversion()
   std::vector<uint8_t> dst_bstr(blen, 0);
 
   prng::prng_t prng;
-  prng.read(src_bstr.data(), src_bstr.size());
+  prng.read(src_bstr);
 
-  polynomial::poly_t<moduli> poly(src_bstr.data());
-  poly.to_bytes(dst_bstr.data());
+  polynomial::poly_t<moduli> poly(src_bstr);
+  poly.to_bytes(dst_bstr);
 
   ASSERT_EQ(src_bstr, dst_bstr);
 }

@@ -24,7 +24,7 @@ public:
 
   // Given a byte array of length log2(moduli) * 32 -bytes, this routine can be
   // used for transforming it into a polynomial, following algorithm 9 of spec.
-  inline explicit poly_t(const uint8_t* const bstr)
+  inline explicit poly_t(std::span<const uint8_t> bstr)
   {
     constexpr size_t lg2_moduli = saber_params::log2(moduli);
     constexpr size_t blen = (lg2_moduli * N) / 8;
@@ -39,7 +39,8 @@ public:
       size_t coff = 0;
 
       while (boff < blen) {
-        const auto word0 = saber_utils::from_le_bytes<uint64_t>(bstr + boff, 8);
+        const auto ptr0 = bstr.subspan(boff, 8);
+        const auto word0 = saber_utils::from_le_bytes<uint64_t>(ptr0);
         boff += 8;
 
         res[coff] = static_cast<uint16_t>(word0 & mask13);
@@ -47,7 +48,8 @@ public:
         res[coff + 2] = static_cast<uint16_t>((word0 >> 26) & mask13);
         res[coff + 3] = static_cast<uint16_t>((word0 >> 39) & mask13);
 
-        const auto word1 = saber_utils::from_le_bytes<uint64_t>(bstr + boff, 5);
+        const auto ptr1 = bstr.subspan(boff, 5);
+        const auto word1 = saber_utils::from_le_bytes<uint64_t>(ptr1);
         boff += 5;
 
         res[coff + 4] = (static_cast<uint16_t>(word1 & mask1) << 12) |
@@ -65,7 +67,8 @@ public:
       size_t coff = 0;
 
       while (boff < blen) {
-        const auto word = saber_utils::from_le_bytes<uint64_t>(bstr + boff, 5);
+        const auto ptr = bstr.subspan(boff, 5);
+        const auto word = saber_utils::from_le_bytes<uint64_t>(ptr);
         boff += 5;
 
         res[coff] = static_cast<uint16_t>(word & mask10);
@@ -82,7 +85,8 @@ public:
       size_t coff = 0;
 
       while (boff < blen) {
-        const auto word = saber_utils::from_le_bytes<uint32_t>(bstr + boff, 3);
+        const auto ptr = bstr.subspan(boff, 3);
+        const auto word = saber_utils::from_le_bytes<uint32_t>(ptr);
         boff += 3;
 
         res[coff] = static_cast<uint16_t>(word & mask6);
@@ -112,7 +116,8 @@ public:
       size_t coff = 0;
 
       while (boff < blen) {
-        const auto word = saber_utils::from_le_bytes<uint32_t>(bstr + boff, 3);
+        const auto ptr = bstr.subspan(boff, 3);
+        const auto word = saber_utils::from_le_bytes<uint32_t>(ptr);
         boff += 3;
 
         res[coff] = static_cast<uint16_t>(word & mask3);
@@ -172,7 +177,7 @@ public:
 
   // Given a polynomial, this routine can transform it into a byte string of
   // length log2(moduli) * 32, following algorithm 10 of spec.
-  inline void to_bytes(uint8_t* const bstr)
+  inline void to_bytes(std::span<uint8_t> bstr)
   {
     constexpr size_t lg2_moduli = saber_params::log2(moduli);
 

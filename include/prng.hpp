@@ -1,6 +1,7 @@
 #pragma once
 #include "shake128.hpp"
 #include <random>
+#include <span>
 
 // Pseudo Random Number Generator
 namespace prng {
@@ -26,7 +27,7 @@ namespace prng {
 struct prng_t
 {
 private:
-  shake128::shake128<false> state;
+  shake128::shake128 state;
 
 public:
   inline prng_t()
@@ -45,17 +46,19 @@ public:
       off += sizeof(v);
     }
 
-    state.hash(seed, sizeof(seed));
+    state.absorb(seed, sizeof(seed));
+    state.finalize();
   }
 
-  inline explicit prng_t(const uint8_t* const seed, const size_t slen)
+  inline explicit prng_t(std::span<const uint8_t> seed)
   {
-    state.hash(seed, slen);
+    state.absorb(seed.data(), seed.size());
+    state.finalize();
   }
 
-  inline void read(uint8_t* const bytes, const size_t len)
+  inline void read(std::span<uint8_t> bytes)
   {
-    state.read(bytes, len);
+    state.squeeze(bytes.data(), bytes.size());
   }
 };
 

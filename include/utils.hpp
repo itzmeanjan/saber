@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <span>
 #include <type_traits>
 
 // Utility functions for Saber KEM
@@ -52,14 +53,15 @@ bswap(const T v)
 
 // Given N -bytes as input, this routine can be used for interpreting them in
 // little-endian byte order, returning a 16/ 32/ 64 -bit unsigned integer word.
-// Meaning `blen` must ∈ [0, 8].
+// Meaning `N` must ∈ [0, 8]. In case N -bytes don't fill returned unsigned
+// integer word, remaining bytes will be set to 0.
 template<typename T>
 inline constexpr T
-from_le_bytes(const uint8_t* const bytes, const size_t blen)
-  requires(std::is_unsigned_v<T> && (sizeof(T) >= 2))
+from_le_bytes(std::span<const uint8_t> bytes)
+  requires(std::is_unsigned_v<T> && ((sizeof(T) >= 2)))
 {
   T res = 0;
-  std::memcpy(&res, bytes, blen);
+  std::memcpy(&res, bytes.data(), bytes.size());
 
   if constexpr (std::endian::native == std::endian::big) {
     res = bswap(res);
