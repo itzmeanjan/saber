@@ -1,12 +1,7 @@
-#pragma once
 #include "polynomial.hpp"
 #include "prng.hpp"
-#include <algorithm>
-#include <cassert>
+#include <gtest/gtest.h>
 #include <vector>
-
-// Test correctness of Saber KEM and its components.
-namespace test_saber {
 
 // Ensure functional correctness of implementation of data conversion algorithms
 // i.e. algorithms used for transforming in between byte strings and degree-255
@@ -28,7 +23,14 @@ test_poly_conversion()
   polynomial::poly_t<moduli> poly(src_bstr.data());
   poly.to_bytes(dst_bstr.data());
 
-  assert(std::ranges::equal(src_bstr, dst_bstr));
+  ASSERT_EQ(src_bstr, dst_bstr);
 }
 
+TEST(SaberKEM, PolynomialConversion)
+{
+  test_poly_conversion<(1 << 3)>();
+  test_poly_conversion<(1 << 4)>();
+  test_poly_conversion<(1 << 6)>();
+  test_poly_conversion<(1 << 10)>();
+  test_poly_conversion<(1 << 13)>();
 }
