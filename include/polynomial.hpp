@@ -153,7 +153,7 @@ public:
   inline constexpr void operator+=(const poly_t& rhs) { *this = *this + rhs; }
 
   // Multiplication of two polynomials s.t. their coefficients are over Zq.
-  inline constexpr void operator*(const poly_t& rhs) const
+  inline constexpr poly_t operator*(const poly_t& rhs) const
   {
     return karatsuba::karamul(this->coeffs, rhs.coeffs);
   }
