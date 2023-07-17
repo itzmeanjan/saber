@@ -35,6 +35,17 @@ public:
       elements[i] = poly;
     }
   }
+
+  // Given a vector of polynomials, this routine can transform it into a byte
+  // string of length rows * log2(moduli) * 32, following algorithm 12 of spec.
+  inline void to_bytes(std::span<uint8_t> bstr)
+    requires(cols == 1)
+  {
+    constexpr size_t poly_blen = polynomial::N * saber_params::log2(moduli) / 8;
+    for (size_t i = 0; i < rows; i++) {
+      elements[i].to_bytes(bstr.subspan(i * poly_blen, poly_blen));
+    }
+  }
 };
 
 }
