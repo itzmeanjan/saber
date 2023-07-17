@@ -53,7 +53,7 @@ public:
   template<const size_t rhs_rows>
   inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(
     const poly_matrix_t<rhs_rows, 1, moduli>& vec)
-    requires(cols == rhs_rows)
+    requires((rows == cols) && (cols == rhs_rows))
   {
     poly_matrix_t<rows, 1, moduli> res;
 
@@ -62,9 +62,24 @@ public:
       polynomial::poly_t<moduli> poly;
 
       for (size_t j = 0; j < cols; j++) {
-        poly += (elements[i * cols + j] * vec.elements[j]);
+        poly += (mat.elements[i * cols + j] * vec.elements[j]);
       }
       res[i] = poly;
+    }
+
+    return res;
+  }
+
+  // Given two vectors v_a, v_b ∈ Rp^(l×1), this routine computes their inner
+  // product, returning a polynomial c ∈ Rp, following algorithm 14 of spec.
+  inline polynomial::poly_t<moduli> inner_prod(
+    const poly_matrix_t<rows, cols, moduli>& vec)
+    requires(cols == 1)
+  {
+    polynomial::poly_t<moduli> res;
+
+    for (size_t i = 0; i < rows; i++) {
+      res += (this->elements[i] * vec.elements[i]);
     }
 
     return res;
