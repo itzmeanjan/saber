@@ -10,7 +10,10 @@ all: test
 tests/test_polynomial.o: tests/test_polynomial.cpp include/*.hpp
 	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
 
-tests/a.out: tests/test_polynomial.o
+tests/test_poly_matrix.o: tests/test_poly_matrix.cpp include/*.hpp
+	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
+
+tests/a.out: tests/test_polynomial.o tests/test_poly_matrix.o
 	$(CXX) $(OPT_FLAGS) $^ -lgtest -lgtest_main -o $@
 
 test: tests/a.out
