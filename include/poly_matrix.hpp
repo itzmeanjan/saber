@@ -46,6 +46,29 @@ public:
       elements[i].to_bytes(bstr.subspan(i * poly_blen, poly_blen));
     }
   }
+
+  // Given a matrix M ∈ Rq^(l×l) and vector v ∈ Rq^(l×1), this routine performs
+  // a matrix vector multiplication, returning a vector mv ∈ Rq^(l×1), following
+  // algorithm 13 of spec.
+  template<const size_t rhs_rows>
+  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(
+    const poly_matrix_t<rhs_rows, 1, moduli>& vec)
+    requires(cols == rhs_rows)
+  {
+    poly_matrix_t<rows, 1, moduli> res;
+
+    auto mat = this;
+    for (size_t i = 0; i < rows; i++) {
+      polynomial::poly_t<moduli> poly;
+
+      for (size_t j = 0; j < cols; j++) {
+        poly += (elements[i * cols + j] * vec.elements[j]);
+      }
+      res[i] = poly;
+    }
+
+    return res;
+  }
 };
 
 }
