@@ -1,5 +1,6 @@
 #pragma once
 #include "params.hpp"
+#include <cstddef>
 
 // Arithmetic operations over Zq s.t. q = 2^i, i >= 0
 namespace zq {
@@ -37,6 +38,18 @@ public:
   inline constexpr zq_t operator*(const zq_t& rhs) const
   {
     return this->val * rhs.val;
+  }
+
+  // Left shift element ∈ Zq
+  inline constexpr zq_t operator<<(const size_t off) const
+  {
+    return this->val << off;
+  }
+
+  // Right shift element ∈ Zq
+  inline constexpr zq_t operator>>(const size_t off) const
+  {
+    return this->val >> off;
   }
 
   // Reduction by integer moduli q s.t. q = power of 2.
