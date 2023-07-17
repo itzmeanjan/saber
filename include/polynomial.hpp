@@ -1,4 +1,5 @@
 #pragma once
+#include "karatsuba.hpp"
 #include "utils.hpp"
 #include "zq.hpp"
 #include <array>
@@ -150,6 +151,12 @@ public:
 
   // Compound addition of two polynomials s.t. their coefficients are over Zq.
   inline constexpr void operator+=(const poly_t& rhs) { *this = *this + rhs; }
+
+  // Multiplication of two polynomials s.t. their coefficients are over Zq.
+  inline constexpr void operator*(const poly_t& rhs) const
+  {
+    return karatsuba::karamul(this->coeffs, rhs.coeffs);
+  }
 
   // Left shift each coefficient of the polynomial by factor `off`.
   inline constexpr poly_t operator<<(const size_t off) const
