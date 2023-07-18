@@ -63,6 +63,44 @@ public:
     }
   }
 
+  // Left shift each element of the polynomial matrix by factor `off`.
+  inline constexpr poly_matrix_t<rows, cols, moduli> operator<<(const size_t off) const
+  {
+    std::array<polynomial::poly_t<moduli>, rows * cols> res{};
+
+    for (size_t i = 0; i < rows * cols; i++) {
+      res[i] = elements[i] << off;
+    }
+
+    return res;
+  }
+
+  // Right shift each element of the polynomial matrix by factor `off`.
+  inline constexpr poly_matrix_t<rows, cols, moduli> operator>>(const size_t off) const
+  {
+    std::array<polynomial::poly_t<moduli>, rows * cols> res{};
+
+    for (size_t i = 0; i < rows * cols; i++) {
+      res[i] = elements[i] >> off;
+    }
+
+    return res;
+  }
+
+  // Change moduli of each element of polynomial matrix to a different value.
+  template<const uint16_t new_moduli>
+  inline constexpr poly_matrix_t<rows, cols, new_moduli> mod() const
+    requires(moduli != new_moduli)
+  {
+    std::array<polynomial::poly_t<new_moduli>, rows * cols> res{};
+
+    for (size_t i = 0; i < rows * cols; i++) {
+      res[i] = std::move(elements[i].template mod<new_moduli>());
+    }
+
+    return res;
+  }
+
   // Given a vector of polynomials, this routine can transform it into a byte
   // string of length rows * log2(moduli) * 32, following algorithm 12 of spec.
   inline void to_bytes(std::span<uint8_t> bstr)
