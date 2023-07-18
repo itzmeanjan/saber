@@ -1,7 +1,10 @@
 #pragma once
 #include "params.hpp"
 #include "polynomial.hpp"
+#include "shake128.hpp"
 #include <array>
+#include <cstdint>
+#include <span>
 
 // Operations defined over matrix/ vector of polynomials.
 namespace poly_matrix {
@@ -83,6 +86,37 @@ public:
     }
 
     return res;
+  }
+
+  // Given random byte string ( seed ) of length `saber_seedbytes` as input,
+  // this routine generates a matrix A ∈ Rp^(l×l), following algorithm 15 of
+  // spec.
+  template<const size_t saber_seedbytes>
+  inline static poly_matrix_t<rows, cols, moduli> gen_matrix(
+    std::span<const uint8_t, saber_seedbytes> seed)
+    requires(rows == cols)
+  {
+    constexpr size_t ϵ = saber_params::log2(moduli);
+    constexpr size_t poly_blen = (polynomial::N * ϵ) / 8;
+    constexpr size_t buf_blen = rows * cols * poly_blen;
+
+    poly_matrix_t<rows, cols, moduli> mat;
+
+    std::array<uint8_t, buf_blen> buf{};
+    auto bufs = std::span<uint8_t, buf_blen>(buf);
+
+    shake128::shake128 hasher;
+    hasher.absorb(seed.data(), seed.size());
+    hasher.finalize();
+    hasher.squeeze(buf.data(), buf.size());
+    hasher.reset();
+
+    for (size_t i = 0; i < rows * cols; i++) {
+      auto bstr = bufs.subspan(i * poly_blen, poly_blen);
+      mat.elements[i] = polynomial::poly_t<moduli>(bstr);
+    }
+
+    return mat;
   }
 };
 
