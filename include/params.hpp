@@ -27,4 +27,13 @@ log2(const T val)
   return std::countr_zero(val);
 }
 
+// Given an unsigned integer, this routine returns truth value if it's even.
+template<typename T>
+inline constexpr bool
+is_even(T val)
+  requires(std::is_unsigned_v<T>)
+{
+  return !static_cast<bool>(val & 1);
+}
+
 }
