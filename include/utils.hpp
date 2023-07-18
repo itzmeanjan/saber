@@ -39,14 +39,10 @@ bswap(const T v)
 #if defined __GNUG__
     return __builtin_bswap64(v);
 #else
-    return ((v & 0x00000000000000fful) << 56) |
-           ((v & 0x000000000000ff00ul) << 40) |
-           ((v & 0x0000000000ff0000ul) << 24) |
-           ((v & 0x00000000ff000000ul) << 0x8) |
-           ((v & 0x000000ff00000000ul) >> 0x8) |
-           ((v & 0x0000ff0000000000ul) >> 24) |
-           ((v & 0x00ff000000000000ul) >> 40) |
-           ((v & 0xff00000000000000ul) >> 56);
+    return ((v & 0x00000000000000fful) << 56) | ((v & 0x000000000000ff00ul) << 40) |
+           ((v & 0x0000000000ff0000ul) << 24) | ((v & 0x00000000ff000000ul) << 0x8) |
+           ((v & 0x000000ff00000000ul) >> 0x8) | ((v & 0x0000ff0000000000ul) >> 24) |
+           ((v & 0x00ff000000000000ul) >> 40) | ((v & 0xff00000000000000ul) >> 56);
 #endif
   }
 }
@@ -71,11 +67,11 @@ from_le_bytes(std::span<const uint8_t> bytes)
 }
 
 // Compile-time compute byte length of public key encryption's public key.
-template<const size_t L, const size_t EP, const size_t seedA_bytes>
+template<const size_t L, const size_t EP, const size_t seedAbytes>
 inline constexpr size_t
 pke_pklen()
 {
-  return seedA_bytes + (L * EP * 256) / 8;
+  return seedAbytes + (L * EP * 256) / 8;
 }
 
 // Compile-time compute byte length of public key encryption's secret key.

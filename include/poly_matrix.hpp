@@ -19,7 +19,8 @@ private:
 public:
   // Constructors
   inline constexpr poly_matrix_t() = default;
-  inline constexpr poly_matrix_t(std::array<polynomial::poly_t<moduli>, rows * cols> arr)
+  inline constexpr poly_matrix_t(
+    std::array<polynomial::poly_t<moduli>, rows * cols> arr)
   {
     elements = arr;
   }
@@ -33,7 +34,8 @@ public:
 
   // Given row and column index of matrix, returns const reference to requested
   // element polynomial.
-  inline constexpr const polynomial::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx) const
+  inline constexpr const polynomial::poly_t<moduli>& operator[](
+    std::pair<size_t, size_t> idx) const
   {
     return this->elements[idx.first * cols + idx.second];
   }
@@ -66,7 +68,8 @@ public:
   // a matrix vector multiplication, returning a vector mv ∈ Rq^(l×1), following
   // algorithm 13 of spec.
   template<const size_t rhs_rows>
-  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(const poly_matrix_t<rhs_rows, 1, moduli>& vec)
+  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(
+    const poly_matrix_t<rhs_rows, 1, moduli>& vec)
     requires((rows == cols) && (cols == rhs_rows))
   {
     poly_matrix_t<rows, 1, moduli> res;
@@ -86,7 +89,8 @@ public:
 
   // Given two vectors v_a, v_b ∈ Rp^(l×1), this routine computes their inner
   // product, returning a polynomial c ∈ Rp, following algorithm 14 of spec.
-  inline polynomial::poly_t<moduli> inner_prod(const poly_matrix_t<rows, cols, moduli>& vec)
+  inline polynomial::poly_t<moduli> inner_prod(
+    const poly_matrix_t<rows, cols, moduli>& vec)
     requires(cols == 1)
   {
     polynomial::poly_t<moduli> res;

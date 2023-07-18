@@ -138,10 +138,7 @@ public:
   }
 
   // Returns reference to coefficient at given polynomial index ∈ [0, N).
-  inline constexpr zq::zq_t& operator[](const size_t idx)
-  {
-    return coeffs[idx];
-  }
+  inline constexpr zq::zq_t& operator[](const size_t idx) { return coeffs[idx]; }
 
   // Returns const reference to coefficient at given polynomial index ∈ [0, N).
   inline constexpr const zq::zq_t& operator[](const size_t idx) const
@@ -269,8 +266,8 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask2) << 6) |
-                     (coeffs[coff].as_raw() & mask6);
+        bstr[boff] =
+          ((coeffs[coff + 1].as_raw() & mask2) << 6) | (coeffs[coff].as_raw() & mask6);
         bstr[boff + 1] = ((coeffs[coff + 2].as_raw() & mask4) << 4) |
                          ((coeffs[coff + 1].as_raw() >> 2) & mask4);
         bstr[boff + 2] = ((coeffs[coff + 3].as_raw() & mask6) << 2) |
@@ -286,8 +283,8 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask) << 4) |
-                     (coeffs[coff].as_raw() & mask);
+        bstr[boff] =
+          ((coeffs[coff + 1].as_raw() & mask) << 4) | (coeffs[coff].as_raw() & mask);
 
         boff += 1;
         coff += 2;

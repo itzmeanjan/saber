@@ -18,10 +18,7 @@ public:
   inline constexpr zq_t(const uint16_t v) { val = v; }
 
   // Addition over Zq
-  inline constexpr zq_t operator+(const zq_t& rhs) const
-  {
-    return this->val + rhs.val;
-  }
+  inline constexpr zq_t operator+(const zq_t& rhs) const { return this->val + rhs.val; }
 
   // Compound addition over Zq
   inline constexpr void operator+=(const zq_t& rhs) { *this = *this + rhs; }
@@ -30,28 +27,16 @@ public:
   inline constexpr zq_t operator-() const { return -this->val; }
 
   // Subtraction over Zq
-  inline constexpr zq_t operator-(const zq_t& rhs) const
-  {
-    return *this + (-rhs);
-  }
+  inline constexpr zq_t operator-(const zq_t& rhs) const { return *this + (-rhs); }
 
   // Multiplication over Zq
-  inline constexpr zq_t operator*(const zq_t& rhs) const
-  {
-    return this->val * rhs.val;
-  }
+  inline constexpr zq_t operator*(const zq_t& rhs) const { return this->val * rhs.val; }
 
   // Left shift element ∈ Zq
-  inline constexpr zq_t operator<<(const size_t off) const
-  {
-    return this->val << off;
-  }
+  inline constexpr zq_t operator<<(const size_t off) const { return this->val << off; }
 
   // Right shift element ∈ Zq
-  inline constexpr zq_t operator>>(const size_t off) const
-  {
-    return this->val >> off;
-  }
+  inline constexpr zq_t operator>>(const size_t off) const { return this->val >> off; }
 
   // Reduction by integer moduli q s.t. q = power of 2.
   template<const uint16_t moduli>
