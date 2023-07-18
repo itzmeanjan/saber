@@ -1,5 +1,6 @@
 #pragma once
 #include "params.hpp"
+#include <bit>
 #include <cstddef>
 
 // Arithmetic operations over Zq s.t. q = 2^i, i >= 0
@@ -62,6 +63,15 @@ public:
 
   // Raw value ∈ Zq
   inline constexpr uint16_t as_raw() const { return this->val; }
+
+  // Returns hamming weight (i.e. number of non-zero bits present) of bit string
+  // representation of Zq element.
+  template<const size_t moduli>
+  inline constexpr size_t hamming_weight() const
+    requires(saber_params::is_power_of_2(moduli))
+  {
+    return std::popcount(reduce_by<moduli>().as_raw());
+  }
 };
 
 }
