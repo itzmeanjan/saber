@@ -5,7 +5,7 @@
 #include <array>
 
 // Operations defined over quotient ring Rq
-namespace polynomial {
+namespace poly {
 
 // For all parameter sets of Saber KEM, degree of polynomials over Zq is 255.
 constexpr size_t N = 256;

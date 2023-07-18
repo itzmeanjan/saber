@@ -6,7 +6,7 @@
 #include <span>
 
 // Operations defined over matrix/ vector of polynomials.
-namespace poly_matrix {
+namespace mat {
 
 // Wrapper type encapsulating matrix/ vector operations s.t. its elements are
 // polynomials in Rq = Zq[X]/(X^N + 1), N = 256.
@@ -14,37 +14,34 @@ template<const size_t rows, const size_t cols, const uint16_t moduli>
 struct poly_matrix_t
 {
 private:
-  std::array<polynomial::poly_t<moduli>, rows * cols> elements{};
+  std::array<poly::poly_t<moduli>, rows * cols> elements{};
 
 public:
   // Constructors
   inline constexpr poly_matrix_t() = default;
-  inline constexpr poly_matrix_t(
-    std::array<polynomial::poly_t<moduli>, rows * cols> arr)
+  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols> arr)
   {
     elements = arr;
   }
-  inline constexpr poly_matrix_t(
-    std::array<polynomial::poly_t<moduli>, rows * cols>& arr)
+  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>& arr)
   {
     elements = arr;
   }
-  inline constexpr poly_matrix_t(
-    std::array<polynomial::poly_t<moduli>, rows * cols>&& arr)
+  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>&& arr)
   {
     elements = arr;
   }
 
   // Given row and column index of matrix, returns reference to requested
   // element polynomial.
-  inline constexpr polynomial::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx)
+  inline constexpr poly::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx)
   {
     return this->elements[idx.first * cols + idx.second];
   }
 
   // Given row and column index of matrix, returns const reference to requested
   // element polynomial.
-  inline constexpr const polynomial::poly_t<moduli>& operator[](
+  inline constexpr const poly::poly_t<moduli>& operator[](
     std::pair<size_t, size_t> idx) const
   {
     return this->elements[idx.first * cols + idx.second];
@@ -56,9 +53,9 @@ public:
   inline explicit poly_matrix_t(std::span<const uint8_t> bstr)
     requires(cols == 1)
   {
-    constexpr size_t poly_blen = polynomial::N * saber_params::log2(moduli) / 8;
+    constexpr size_t poly_blen = poly::N * saber_params::log2(moduli) / 8;
     for (size_t i = 0; i < rows; i++) {
-      polynomial::poly_t<moduli> poly(bstr.subspan(i * poly_blen, poly_blen));
+      poly::poly_t<moduli> poly(bstr.subspan(i * poly_blen, poly_blen));
       elements[i] = poly;
     }
   }
@@ -66,7 +63,7 @@ public:
   // Left shift each element of the polynomial matrix by factor `off`.
   inline constexpr poly_matrix_t<rows, cols, moduli> operator<<(const size_t off) const
   {
-    std::array<polynomial::poly_t<moduli>, rows * cols> res{};
+    std::array<poly::poly_t<moduli>, rows * cols> res{};
 
     for (size_t i = 0; i < rows * cols; i++) {
       res[i] = elements[i] << off;
@@ -78,7 +75,7 @@ public:
   // Right shift each element of the polynomial matrix by factor `off`.
   inline constexpr poly_matrix_t<rows, cols, moduli> operator>>(const size_t off) const
   {
-    std::array<polynomial::poly_t<moduli>, rows * cols> res{};
+    std::array<poly::poly_t<moduli>, rows * cols> res{};
 
     for (size_t i = 0; i < rows * cols; i++) {
       res[i] = elements[i] >> off;
@@ -92,7 +89,7 @@ public:
   inline constexpr poly_matrix_t<rows, cols, new_moduli> mod() const
     requires(moduli != new_moduli)
   {
-    std::array<polynomial::poly_t<new_moduli>, rows * cols> res{};
+    std::array<poly::poly_t<new_moduli>, rows * cols> res{};
 
     for (size_t i = 0; i < rows * cols; i++) {
       res[i] = std::move(elements[i].template mod<new_moduli>());
@@ -106,7 +103,7 @@ public:
   inline void to_bytes(std::span<uint8_t> bstr)
     requires(cols == 1)
   {
-    constexpr size_t poly_blen = polynomial::N * saber_params::log2(moduli) / 8;
+    constexpr size_t poly_blen = poly::N * saber_params::log2(moduli) / 8;
     for (size_t i = 0; i < rows; i++) {
       elements[i].to_bytes(bstr.subspan(i * poly_blen, poly_blen));
     }
@@ -124,7 +121,7 @@ public:
 
     auto mat = this;
     for (size_t i = 0; i < rows; i++) {
-      polynomial::poly_t<moduli> poly;
+      poly::poly_t<moduli> poly;
 
       for (size_t j = 0; j < cols; j++) {
         poly += (mat.elements[i * cols + j] * vec.elements[j]);
@@ -137,11 +134,10 @@ public:
 
   // Given two vectors v_a, v_b ∈ Rp^(l×1), this routine computes their inner
   // product, returning a polynomial c ∈ Rp, following algorithm 14 of spec.
-  inline polynomial::poly_t<moduli> inner_prod(
-    const poly_matrix_t<rows, cols, moduli>& vec)
+  inline poly::poly_t<moduli> inner_prod(const poly_matrix_t<rows, cols, moduli>& vec)
     requires(cols == 1)
   {
-    polynomial::poly_t<moduli> res;
+    poly::poly_t<moduli> res;
 
     for (size_t i = 0; i < rows; i++) {
       res += (this->elements[i] * vec.elements[i]);
@@ -159,7 +155,7 @@ public:
     requires(rows == cols)
   {
     constexpr size_t ϵ = saber_params::log2(moduli);
-    constexpr size_t poly_blen = (polynomial::N * ϵ) / 8;
+    constexpr size_t poly_blen = (poly::N * ϵ) / 8;
     constexpr size_t buf_blen = rows * cols * poly_blen;
 
     poly_matrix_t<rows, cols, moduli> mat;
@@ -175,7 +171,7 @@ public:
 
     for (size_t i = 0; i < rows * cols; i++) {
       auto bstr = bufs.subspan(i * poly_blen, poly_blen);
-      polynomial::poly_t<moduli> poly(bstr);
+      poly::poly_t<moduli> poly(bstr);
       mat.elements[i] = poly;
     }
 
@@ -191,7 +187,7 @@ public:
     requires((cols == 1) && saber_params::is_even(mu))
   {
     constexpr uint16_t m = 1u << (mu / 2);
-    constexpr size_t poly_blen = (polynomial::N * mu) / 8;
+    constexpr size_t poly_blen = (poly::N * mu) / 8;
     constexpr size_t buf_blen = rows * poly_blen;
 
     poly_matrix_t<rows, 1, moduli> vec;
@@ -209,10 +205,10 @@ public:
       size_t off = i * poly_blen;
 
       auto bstr_a = bufs.subspan(off, poly_blen / 2);
-      polynomial::poly_t<m> poly_a(bstr_a);
+      poly::poly_t<m> poly_a(bstr_a);
 
       size_t j = 0, k = 0;
-      while (j < polynomial::N / 2) {
+      while (j < poly::N / 2) {
         const auto hw0 = poly_a[k].template hamming_weight<m>();
         const auto hw1 = poly_a[k + 1].template hamming_weight<m>();
 
@@ -225,10 +221,10 @@ public:
       off += bstr_a.size();
 
       auto bstr_b = bufs.subspan(off, poly_blen / 2);
-      polynomial::poly_t<m> poly_b(bstr_b);
+      poly::poly_t<m> poly_b(bstr_b);
 
       k = 0;
-      while (j < polynomial::N) {
+      while (j < poly::N) {
         const auto hw0 = poly_b[k].template hamming_weight<m>();
         const auto hw1 = poly_b[k + 1].template hamming_weight<m>();
 
