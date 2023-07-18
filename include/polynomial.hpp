@@ -137,8 +137,14 @@ public:
     coeffs = res;
   }
 
-  // Returns coefficient at given polynomial index ∈ [0, N).
-  inline constexpr zq::zq_t operator[](const size_t idx) const
+  // Returns reference to coefficient at given polynomial index ∈ [0, N).
+  inline constexpr zq::zq_t& operator[](const size_t idx)
+  {
+    return coeffs[idx];
+  }
+
+  // Returns const reference to coefficient at given polynomial index ∈ [0, N).
+  inline constexpr const zq::zq_t& operator[](const size_t idx) const
   {
     return coeffs[idx];
   }

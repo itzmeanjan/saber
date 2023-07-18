@@ -25,6 +25,22 @@ public:
     elements = arr;
   }
 
+  // Given row and column index of matrix, returns reference to requested
+  // element polynomial.
+  inline constexpr polynomial::poly_t<moduli>& operator[](
+    std::pair<size_t, size_t> idx)
+  {
+    return this->elements[idx.first * cols + idx.second];
+  }
+
+  // Given row and column index of matrix, returns const reference to requested
+  // element polynomial.
+  inline constexpr const polynomial::poly_t<moduli>& operator[](
+    std::pair<size_t, size_t> idx) const
+  {
+    return this->elements[idx.first * cols + idx.second];
+  }
+
   // Given a byte array of length rows * log2(moduli) * 32 -bytes, this routine
   // can be used for transforming it into a vector of polynomials, following
   // algorithm 11 of spec.
@@ -178,6 +194,22 @@ public:
     }
 
     return vec;
+  }
+
+  // Given a matrix M of dimension m x n, this routine is used for computing its
+  // transpose M' s.t. resulting matrix's dimension becomes n x m. Note, m == n.
+  inline constexpr poly_matrix_t<cols, rows, moduli> transpose() const
+    requires(rows == cols)
+  {
+    poly_matrix_t<cols, rows, moduli> res{};
+
+    for (size_t i = 0; i < cols; i++) {
+      for (size_t j = 0; j < rows; j++) {
+        res[{ i, j }] = (*this)[{ j, i }];
+      }
+    }
+
+    return res;
   }
 };
 
