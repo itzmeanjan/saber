@@ -3,7 +3,6 @@
 #include "polynomial.hpp"
 #include "shake128.hpp"
 #include <array>
-#include <cstdint>
 #include <span>
 
 // Operations defined over matrix/ vector of polynomials.
@@ -88,12 +87,12 @@ public:
     return res;
   }
 
-  // Given random byte string ( seed ) of length `saber_seedbytes` as input,
-  // this routine generates a matrix A ∈ Rp^(l×l), following algorithm 15 of
+  // Given random byte string ( seed ) of length `seedbytes` as input,
+  // this routine generates a matrix A ∈ Rq^(l×l), following algorithm 15 of
   // spec.
-  template<const size_t saber_seedbytes>
+  template<const size_t seedbytes>
   inline static poly_matrix_t<rows, cols, moduli> gen_matrix(
-    std::span<const uint8_t, saber_seedbytes> seed)
+    std::span<const uint8_t, seedbytes> seed)
     requires(rows == cols)
   {
     constexpr size_t ϵ = saber_params::log2(moduli);
@@ -113,10 +112,72 @@ public:
 
     for (size_t i = 0; i < rows * cols; i++) {
       auto bstr = bufs.subspan(i * poly_blen, poly_blen);
-      mat.elements[i] = polynomial::poly_t<moduli>(bstr);
+      polynomial::poly_t<moduli> poly(bstr);
+      mat.elements[i] = poly;
     }
 
     return mat;
+  }
+
+  // Given random byte string ( seed ) of length `noise_seedbytes` as input,
+  // this routine outputs a secret vector v ∈ Rq^(l×1) with its coefficients
+  // sampled from a centered binomial distribution β_μ.
+  template<const size_t noise_seedbytes>
+  inline static poly_matrix_t<rows, 1, moduli> gen_secret(
+    std::span<const uint8_t, noise_seedbytes> seed)
+    requires(cols == 1)
+  {
+    constexpr size_t μ = saber_params::log2(moduli);
+    constexpr uint16_t q = 1u << (μ / 2);
+    constexpr size_t poly_blen = (polynomial::N * μ) / 8;
+    constexpr size_t buf_blen = rows * poly_blen;
+
+    poly_matrix_t<rows, 1, moduli> vec;
+
+    std::array<uint8_t, buf_blen> buf{};
+    auto bufs = std::span<uint8_t, buf_blen>(buf);
+
+    shake128::shake128 hasher;
+    hasher.absorb(seed.data(), seed.size());
+    hasher.finalize();
+    hasher.squeeze(buf.data(), buf.size());
+    hasher.reset();
+
+    for (size_t i = 0; i < rows; i++) {
+      size_t off = i * poly_blen;
+
+      auto bstr_a = bufs.subspan(off, poly_blen / 2);
+      polynomial::poly_t<q> poly_a(bstr_a);
+
+      size_t j = 0, k = 0;
+      while (j < polynomial::N / 2) {
+        const auto hw0 = poly_a[k].template hamming_weight<q>();
+        const auto hw1 = poly_a[k + 1].template hamming_weight<q>();
+
+        vec.elements[i][j] = hw0 - hw1;
+
+        j += 1;
+        k += 2;
+      }
+
+      off += bstr_a.size();
+
+      auto bstr_b = bufs.subspan(off, poly_blen / 2);
+      polynomial::poly_t<q> poly_b(bstr_b);
+
+      k = 0;
+      while (j < polynomial::N) {
+        const auto hw0 = poly_b[k].template hamming_weight<q>();
+        const auto hw1 = poly_b[k + 1].template hamming_weight<q>();
+
+        vec.elements[i][j] = hw0 - hw1;
+
+        j += 1;
+        k += 2;
+      }
+    }
+
+    return vec;
   }
 };
 
