@@ -22,6 +22,8 @@ public:
   // Constructors
   inline constexpr poly_t() = default;
   inline constexpr poly_t(std::array<zq::zq_t, N> arr) { coeffs = arr; }
+  inline constexpr poly_t(std::array<zq::zq_t, N>& arr) { coeffs = arr; }
+  inline constexpr poly_t(std::array<zq::zq_t, N>&& arr) { coeffs = arr; }
 
   // Given a byte array of length log2(moduli) * 32 -bytes, this routine can be
   // used for transforming it into a polynomial, following algorithm 9 of spec.
@@ -189,6 +191,14 @@ public:
     }
 
     return res;
+  }
+
+  // Change moduli of polynomial coefficients to different value.
+  template<const uint16_t new_moduli>
+  inline constexpr poly_t mod() const
+    requires(moduli != new_moduli)
+  {
+    return poly_t<new_moduli>(std::move(coeffs));
   }
 
   // Given a polynomial, this routine can transform it into a byte string of

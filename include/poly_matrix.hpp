@@ -24,6 +24,16 @@ public:
   {
     elements = arr;
   }
+  inline constexpr poly_matrix_t(
+    std::array<polynomial::poly_t<moduli>, rows * cols>& arr)
+  {
+    elements = arr;
+  }
+  inline constexpr poly_matrix_t(
+    std::array<polynomial::poly_t<moduli>, rows * cols>&& arr)
+  {
+    elements = arr;
+  }
 
   // Given row and column index of matrix, returns reference to requested
   // element polynomial.
