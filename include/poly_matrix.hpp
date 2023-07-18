@@ -19,24 +19,21 @@ private:
 public:
   // Constructors
   inline constexpr poly_matrix_t() = default;
-  inline constexpr poly_matrix_t(
-    std::array<polynomial::poly_t<moduli>, rows * cols> arr)
+  inline constexpr poly_matrix_t(std::array<polynomial::poly_t<moduli>, rows * cols> arr)
   {
     elements = arr;
   }
 
   // Given row and column index of matrix, returns reference to requested
   // element polynomial.
-  inline constexpr polynomial::poly_t<moduli>& operator[](
-    std::pair<size_t, size_t> idx)
+  inline constexpr polynomial::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx)
   {
     return this->elements[idx.first * cols + idx.second];
   }
 
   // Given row and column index of matrix, returns const reference to requested
   // element polynomial.
-  inline constexpr const polynomial::poly_t<moduli>& operator[](
-    std::pair<size_t, size_t> idx) const
+  inline constexpr const polynomial::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx) const
   {
     return this->elements[idx.first * cols + idx.second];
   }
@@ -69,8 +66,7 @@ public:
   // a matrix vector multiplication, returning a vector mv ∈ Rq^(l×1), following
   // algorithm 13 of spec.
   template<const size_t rhs_rows>
-  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(
-    const poly_matrix_t<rhs_rows, 1, moduli>& vec)
+  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(const poly_matrix_t<rhs_rows, 1, moduli>& vec)
     requires((rows == cols) && (cols == rhs_rows))
   {
     poly_matrix_t<rows, 1, moduli> res;
@@ -90,8 +86,7 @@ public:
 
   // Given two vectors v_a, v_b ∈ Rp^(l×1), this routine computes their inner
   // product, returning a polynomial c ∈ Rp, following algorithm 14 of spec.
-  inline polynomial::poly_t<moduli> inner_prod(
-    const poly_matrix_t<rows, cols, moduli>& vec)
+  inline polynomial::poly_t<moduli> inner_prod(const poly_matrix_t<rows, cols, moduli>& vec)
     requires(cols == 1)
   {
     polynomial::poly_t<moduli> res;
@@ -138,14 +133,13 @@ public:
   // Given random byte string ( seed ) of length `noise_seedbytes` as input,
   // this routine outputs a secret vector v ∈ Rq^(l×1) with its coefficients
   // sampled from a centered binomial distribution β_μ.
-  template<const size_t noise_seedbytes>
+  template<const size_t noise_seedbytes, const size_t mu>
   inline static poly_matrix_t<rows, 1, moduli> gen_secret(
     std::span<const uint8_t, noise_seedbytes> seed)
-    requires(cols == 1)
+    requires((cols == 1) && saber_params::is_even(mu))
   {
-    constexpr size_t μ = saber_params::log2(moduli);
-    constexpr uint16_t q = 1u << (μ / 2);
-    constexpr size_t poly_blen = (polynomial::N * μ) / 8;
+    constexpr uint16_t m = 1u << (mu / 2);
+    constexpr size_t poly_blen = (polynomial::N * mu) / 8;
     constexpr size_t buf_blen = rows * poly_blen;
 
     poly_matrix_t<rows, 1, moduli> vec;
@@ -163,12 +157,12 @@ public:
       size_t off = i * poly_blen;
 
       auto bstr_a = bufs.subspan(off, poly_blen / 2);
-      polynomial::poly_t<q> poly_a(bstr_a);
+      polynomial::poly_t<m> poly_a(bstr_a);
 
       size_t j = 0, k = 0;
       while (j < polynomial::N / 2) {
-        const auto hw0 = poly_a[k].template hamming_weight<q>();
-        const auto hw1 = poly_a[k + 1].template hamming_weight<q>();
+        const auto hw0 = poly_a[k].template hamming_weight<m>();
+        const auto hw1 = poly_a[k + 1].template hamming_weight<m>();
 
         vec.elements[i][j] = hw0 - hw1;
 
@@ -179,12 +173,12 @@ public:
       off += bstr_a.size();
 
       auto bstr_b = bufs.subspan(off, poly_blen / 2);
-      polynomial::poly_t<q> poly_b(bstr_b);
+      polynomial::poly_t<m> poly_b(bstr_b);
 
       k = 0;
       while (j < polynomial::N) {
-        const auto hw0 = poly_b[k].template hamming_weight<q>();
-        const auto hw1 = poly_b[k + 1].template hamming_weight<q>();
+        const auto hw0 = poly_b[k].template hamming_weight<m>();
+        const auto hw1 = poly_b[k + 1].template hamming_weight<m>();
 
         vec.elements[i][j] = hw0 - hw1;
 
