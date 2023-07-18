@@ -9,7 +9,7 @@
 //
 // `moduli` must be a power of 2 value.
 template<const uint16_t moduli>
-inline void
+void
 test_poly_conversion()
 {
   constexpr size_t blen = (saber_params::log2(moduli) * polynomial::N) / 8;

@@ -137,6 +137,12 @@ public:
     coeffs = res;
   }
 
+  // Returns coefficient at given polynomial index ∈ [0, N).
+  inline constexpr zq::zq_t operator[](const size_t idx) const
+  {
+    return coeffs[idx];
+  }
+
   // Addition of two polynomials s.t. their coefficients are over Zq.
   inline constexpr poly_t operator+(const poly_t& rhs) const
   {
@@ -153,7 +159,7 @@ public:
   inline constexpr void operator+=(const poly_t& rhs) { *this = *this + rhs; }
 
   // Multiplication of two polynomials s.t. their coefficients are over Zq.
-  inline constexpr void operator*(const poly_t& rhs) const
+  inline constexpr poly_t operator*(const poly_t& rhs) const
   {
     return karatsuba::karamul(this->coeffs, rhs.coeffs);
   }
