@@ -70,4 +70,20 @@ from_le_bytes(std::span<const uint8_t> bytes)
   return res;
 }
 
+// Compile-time compute byte length of public key encryption's public key.
+template<const size_t L, const size_t EP, const size_t seedA_bytes>
+inline constexpr size_t
+pke_pklen()
+{
+  return seedA_bytes + (L * EP * 256) / 8;
+}
+
+// Compile-time compute byte length of public key encryption's secret key.
+template<const size_t L, const size_t EQ>
+inline constexpr size_t
+pke_sklen()
+{
+  return (L * EQ * 256) / 8;
+}
+
 }
