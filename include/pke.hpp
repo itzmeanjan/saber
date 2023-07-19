@@ -82,7 +82,7 @@ keygen(std::span<const uint8_t, seedAbytes> seedA,
   hasher.squeeze(hashedSeedA.data(), hashedSeedA.size());
   hasher.reset();
 
-  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedAbytes>(seedA);
+  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedAbytes>(hashedSeedA);
   auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedSbytes, MU>(seedS);
 
   auto A_T = A.transpose();
