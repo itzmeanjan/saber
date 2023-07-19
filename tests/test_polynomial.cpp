@@ -28,6 +28,7 @@ test_poly_conversion()
 
 TEST(SaberKEM, PolynomialConversion)
 {
+  test_poly_conversion<(1 << 1)>();
   test_poly_conversion<(1 << 3)>();
   test_poly_conversion<(1 << 4)>();
   test_poly_conversion<(1 << 6)>();
