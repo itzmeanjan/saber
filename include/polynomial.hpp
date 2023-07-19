@@ -134,6 +134,27 @@ public:
 
         coff += 8;
       }
+    } else if constexpr (lg2_moduli == 1) {
+      constexpr uint8_t mask1 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (boff < blen) {
+        const auto word = bstr[boff];
+        boff += 1;
+
+        res[coff] = static_cast<uint16_t>(word & mask1);
+        res[coff + 1] = static_cast<uint16_t>((word >> 1) & mask1);
+        res[coff + 2] = static_cast<uint16_t>((word >> 2) & mask1);
+        res[coff + 3] = static_cast<uint16_t>((word >> 3) & mask1);
+        res[coff + 4] = static_cast<uint16_t>((word >> 4) & mask1);
+        res[coff + 5] = static_cast<uint16_t>((word >> 5) & mask1);
+        res[coff + 6] = static_cast<uint16_t>((word >> 6) & mask1);
+        res[coff + 7] = static_cast<uint16_t>((word >> 7) & mask1);
+
+        coff += 8;
+      }
     }
 
     coeffs = res;
@@ -320,6 +341,25 @@ public:
                          ((coeffs[coff + 5].as_raw() >> 1) & mask2);
 
         boff += 3;
+        coff += 8;
+      }
+    } else if constexpr (lg2_moduli == 1) {
+      constexpr uint16_t mask1 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 7].as_raw() & mask1) << 7) |
+                     ((coeffs[coff + 6].as_raw() & mask1) << 6) |
+                     ((coeffs[coff + 5].as_raw() & mask1) << 5) |
+                     ((coeffs[coff + 4].as_raw() & mask1) << 4) |
+                     ((coeffs[coff + 3].as_raw() & mask1) << 3) |
+                     ((coeffs[coff + 2].as_raw() & mask1) << 2) |
+                     ((coeffs[coff + 1].as_raw() & mask1) << 1) |
+                     (coeffs[coff].as_raw() & mask1);
+
+        boff += 1;
         coff += 8;
       }
     }
