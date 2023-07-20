@@ -57,7 +57,8 @@ compute_poly_h2()
 
 // Given seedAbytes -bytes `seedA` ( used for generating matrix A ) and seedSbytes
 // -bytes `seedS` ( used for generating secret vector s ), this routine can be used for
-// generating a Saber PKE public, private keypair.
+// generating a Saber PKE public, private keypair, following algorithm 17 in
+// section 8.4.1 of Saber spec.
 template<const size_t L,
          const size_t EQ,
          const size_t EP,
@@ -65,8 +66,8 @@ template<const size_t L,
          const size_t seedAbytes,
          const size_t seedSbytes>
 inline void
-keygen(std::span<const uint8_t, seedAbytes> seedA,
-       std::span<const uint8_t, seedSbytes> seedS,
+keygen(std::span<const uint8_t, seedAbytes> seedA, // step 1
+       std::span<const uint8_t, seedSbytes> seedS, // step 3
        std::span<uint8_t, saber_utils::pke_pklen<L, EP, seedAbytes>()> pkey,
        std::span<uint8_t, saber_utils::pke_sklen<L, EQ>()> skey)
 {
@@ -76,22 +77,82 @@ keygen(std::span<const uint8_t, seedAbytes> seedA,
 
   std::array<uint8_t, seedAbytes> hashedSeedA{};
 
+  // step 2
   shake128::shake128 hasher;
   hasher.absorb(seedA.data(), seedA.size());
   hasher.finalize();
   hasher.squeeze(hashedSeedA.data(), hashedSeedA.size());
   hasher.reset();
 
+  // step 4, 5
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedAbytes>(hashedSeedA);
   auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedSbytes, MU>(seedS);
 
+  // step 6, 7, 8
   auto A_T = A.transpose();
   auto b = A_T.mat_vec_mul<L>(s) + h;
   auto b_p = (b >> (EQ - EP)).template mod<P>();
 
+  // step 9, 10, 11
   s.to_bytes(skey);
   b_p.to_bytes(pkey.subspan(seedAbytes, pkey.size() - seedAbytes));
   std::memcpy(pkey.data(), hashedSeedA.data(), seedAbytes);
+}
+
+// Given 32 -bytes input message, seedSbytes -bytes `seedS` and Saber PKE public key,
+// this routine can be used for encrypting fixed length message using Saber public key
+// encryption algorithm, computing a cipher text. This routine is an implementation of
+// algorithm 18 in section 8.4.2 of Saber spec.
+template<const size_t L,
+         const size_t EQ,
+         const size_t EP,
+         const size_t ET,
+         const size_t MU,
+         const size_t seedSbytes>
+inline void
+encrypt(std::span<const uint8_t, 32> msg,
+        std::span<const uint8_t, seedSbytes> seedS,
+        std::span<const uint8_t, saber_utils::pke_pklen<L, EP, seedSbytes>()> pkey,
+        std::span<uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt)
+{
+  constexpr uint16_t Q = 1u << EQ;
+  constexpr uint16_t P = 1u << EP;
+  constexpr uint16_t T = 1u << ET;
+
+  constexpr auto h1 = compute_poly_h1<Q, EQ, EP>();
+  constexpr auto h = compute_polyvec_h<L, Q, EQ, EP>();
+
+  // step 1
+  auto seedA = pkey.subspan(0, seedSbytes);
+  auto pk = pkey.subspan(seedSbytes, pkey.size() - seedSbytes);
+
+  // step 2, 3
+  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedSbytes>(seedA);
+  auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedSbytes, MU>(seedS);
+
+  // step 4, 5, 6
+  auto b_prm = A.mat_vec_mul<L>(s_prm) + h;
+  auto b_prm_p = (b_prm >> (EQ - EP)).template mod<P>();
+
+  // step 7, 8
+  auto b = mat::poly_matrix_t<L, 1, P>(pk);
+  auto s_prm_p = s_prm.template mod<P>();
+  auto v_prm = b.inner_prod(s_prm_p);
+
+  // step 9, 10
+  auto m_p = poly::poly_t<2>(msg);
+  m_p = m_p << (EP - 1);
+
+  // step 11
+  auto c_m = (v_prm - m_p + (h1.template mod<P>())) >> (EP - ET);
+
+  constexpr size_t c_m_len = (ET * poly::N) / 8;
+  constexpr size_t b_prm_p_len = (L * EP * poly::N) / 8;
+  static_assert(c_m_len + b_prm_p_len == ctxt.size(), "Cipher text size must match !");
+
+  // step 12
+  (c_m.template mod<T>()).to_bytes(ctxt.subspan(0, c_m_len));
+  b_prm_p.to_bytes(ctxt.subspan(c_m_len, b_prm_p_len));
 }
 
 }
