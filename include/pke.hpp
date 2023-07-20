@@ -135,12 +135,12 @@ encrypt(std::span<const uint8_t, 32> msg,
   auto b_prm_p = (b_prm >> (EQ - EP)).template mod<P>();
 
   // step 7, 8
-  auto b = mat::poly_matrix_t<L, 1, P>(pk);
+  mat::poly_matrix_t<L, 1, P> b(pk);
   auto s_prm_p = s_prm.template mod<P>();
   auto v_prm = b.inner_prod(s_prm_p);
 
   // step 9, 10
-  auto m_p = poly::poly_t<2>(msg);
+  poly::poly_t<2> m_p(msg);
   m_p = m_p << (EP - 1);
 
   // step 11
@@ -153,6 +153,46 @@ encrypt(std::span<const uint8_t, 32> msg,
   // step 12
   (c_m.template mod<T>()).to_bytes(ctxt.subspan(0, c_m_len));
   b_prm_p.to_bytes(ctxt.subspan(c_m_len, b_prm_p_len));
+}
+
+// Given Saber PKE cipher text and Saber PKE secret key, this routine can be used for
+// decrypting the cipher text to 32 -bytes plain text message, which was encrypted using
+// corresponding ( associated with this secret key ) Saber PKE public key. This routine
+// is an implementation of algorithm 19 in section 8.4.3 of Saber spec.
+template<const size_t L,
+         const size_t EQ,
+         const size_t EP,
+         const size_t ET,
+         const size_t MU>
+inline void
+decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt,
+        std::span<const uint8_t, saber_utils::pke_sklen<L, EQ>()> skey,
+        std::span<uint8_t, 32> msg)
+{
+  constexpr uint16_t Q = 1u << EQ;
+  constexpr uint16_t P = 1u << EP;
+  constexpr uint16_t T = 1u << ET;
+
+  constexpr auto h2 = compute_poly_h2<Q, EQ, EP, ET>();
+
+  // step 2
+  mat::poly_matrix_t<L, 1, Q> s(skey);
+
+  // step 3, 4, 5
+  constexpr size_t cm_len = (ET * poly::N) / 8;
+  poly::poly_t<T> c_m(ctxt.subspan(0, cm_len));
+  c_m = c_m << (EP - ET);
+
+  // step 6
+  constexpr size_t ct_len = (L * EP * poly::N) / 8;
+  mat::poly_matrix_t<L, 1, P> b_prm(ctxt.subspan(cm_len, ct_len));
+
+  // step 7, 8
+  auto v = b_prm.inner_prod(s.template mod<P>());
+  auto m_p = (v - c_m.template mod<P>() + h2.template mod<P>()) >> (EP - 1);
+
+  // step 9
+  (m_p.template mod<2>()).to_bytes(msg);
 }
 
 }
