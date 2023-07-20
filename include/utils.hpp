@@ -82,4 +82,13 @@ pke_sklen()
   return (L * EQ * 256) / 8;
 }
 
+// Compile-time compute byte length of public key encryption's cipher text.
+template<const size_t L, const size_t EP, const size_t ET>
+inline constexpr size_t
+pke_ctlen()
+  requires(EP > ET)
+{
+  return (ET * 256) / 8 + (L * EP * 256) / 8;
+}
+
 }
