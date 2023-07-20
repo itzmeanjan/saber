@@ -19,10 +19,6 @@ private:
 public:
   // Constructors
   inline constexpr poly_matrix_t() = default;
-  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols> arr)
-  {
-    elements = arr;
-  }
   inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>& arr)
   {
     elements = arr;
@@ -180,7 +176,8 @@ public:
 
   // Given random byte string ( seed ) of length `noise_seedbytes` as input,
   // this routine outputs a secret vector v ∈ Rq^(l×1) with its coefficients
-  // sampled from a centered binomial distribution β_μ.
+  // sampled from a centered binomial distribution β_μ, following algorithm 16 of Saber
+  // spec.
   template<const size_t noise_seedbytes, const size_t mu>
   inline static poly_matrix_t<rows, 1, moduli> gen_secret(
     std::span<const uint8_t, noise_seedbytes> seed)

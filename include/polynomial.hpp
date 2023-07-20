@@ -21,7 +21,6 @@ private:
 public:
   // Constructors
   inline constexpr poly_t() = default;
-  inline constexpr poly_t(std::array<zq::zq_t, N> arr) { coeffs = arr; }
   inline constexpr poly_t(std::array<zq::zq_t, N>& arr) { coeffs = arr; }
   inline constexpr poly_t(std::array<zq::zq_t, N>&& arr) { coeffs = arr; }
 
