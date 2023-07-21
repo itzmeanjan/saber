@@ -35,6 +35,6 @@ jobs:
         popd
         popd
     - name: Execute Tests
-      run: make
+      run: make -j $(nproc --all)
     - name: Cleanup
       run: make clean
