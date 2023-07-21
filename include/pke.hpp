@@ -1,59 +1,11 @@
 #pragma once
+#include "consts.hpp"
 #include "poly_matrix.hpp"
 #include "polynomial.hpp"
 #include "shake128.hpp"
 
 // Algorithms related to Saber Public Key Encryption
 namespace saber_pke {
-
-// Compile-time compute constant polynomial h1 ∈ Rq, following section 2.3 of spec.
-template<const uint16_t moduli, const uint16_t εq, const uint16_t εp>
-inline constexpr poly::poly_t<moduli>
-compute_poly_h1()
-  requires((εq > εp) && (moduli == (1u << εq)))
-{
-  constexpr auto v = 1u << (εq - εp - 1);
-  constexpr zq::zq_t coeff(v);
-
-  poly::poly_t<moduli> h1;
-  for (size_t i = 0; i < poly::N; i++) {
-    h1[i] = coeff;
-  }
-
-  return h1;
-}
-
-// Compile-time compute constant vector h ∈ Rq^(lx1), following section 2.3 of spec.
-template<const size_t L, const uint16_t moduli, const uint16_t εq, const uint16_t εp>
-inline constexpr mat::poly_matrix_t<L, 1, moduli>
-compute_polyvec_h()
-{
-  const auto h1 = compute_poly_h1<moduli, εq, εp>();
-
-  mat::poly_matrix_t<L, 1, moduli> h;
-  for (size_t i = 0; i < L; i++) {
-    h[i] = h1;
-  }
-
-  return h;
-}
-
-// Compile-time compute constant polynomial h2 ∈ Rq, following section 2.3 of spec.
-template<const uint16_t moduli, const uint16_t εq, const uint16_t εp, const uint16_t εt>
-inline constexpr poly::poly_t<moduli>
-compute_poly_h2()
-  requires(((εq > εp) && (εp > εt)) && (moduli == (1u << εq)))
-{
-  constexpr auto v = (1u << (εp - 2)) - (1u << (εp - εt - 1)) + (1u << (εq - εp - 1));
-  constexpr zq::zq_t coeff(v);
-
-  poly::poly_t<moduli> h2;
-  for (size_t i = 0; i < poly::N; i++) {
-    h2[i] = coeff;
-  }
-
-  return h2;
-}
 
 // Given seedAbytes -bytes `seedA` ( used for generating matrix A ) and seedSbytes
 // -bytes `seedS` ( used for generating secret vector s ), this routine can be used for
@@ -73,7 +25,7 @@ keygen(std::span<const uint8_t, seedAbytes> seedA, // step 1
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
-  constexpr auto h = compute_polyvec_h<L, Q, EQ, EP>();
+  constexpr auto h = saber_consts::compute_polyvec_h<L, Q, EQ, EP>();
 
   std::array<uint8_t, seedAbytes> hashedSeedA{};
 
@@ -119,12 +71,12 @@ encrypt(std::span<const uint8_t, 32> msg,
   constexpr uint16_t P = 1u << EP;
   constexpr uint16_t T = 1u << ET;
 
-  constexpr auto h1 = compute_poly_h1<Q, EQ, EP>();
-  constexpr auto h = compute_polyvec_h<L, Q, EQ, EP>();
+  constexpr auto h1 = saber_consts::compute_poly_h1<Q, EQ, EP>();
+  constexpr auto h = saber_consts::compute_polyvec_h<L, Q, EQ, EP>();
 
   // step 1
-  auto seedA = pkey.subspan(0, seedSbytes);
-  auto pk = pkey.subspan(seedSbytes, pkey.size() - seedSbytes);
+  auto seedA = pkey.template subspan<0, seedSbytes>();
+  auto pk = pkey.template subspan<seedSbytes, pkey.size() - seedSbytes>();
 
   // step 2, 3
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedSbytes>(seedA);
@@ -140,8 +92,8 @@ encrypt(std::span<const uint8_t, 32> msg,
   auto v_prm = b.inner_prod(s_prm_p);
 
   // step 9, 10
-  poly::poly_t<2> m_p(msg);
-  m_p = m_p << (EP - 1);
+  poly::poly_t<2> m(msg);
+  auto m_p = (m << (EP - 1)).template mod<P>();
 
   // step 11
   auto c_m = (v_prm - m_p + (h1.template mod<P>())) >> (EP - ET);
@@ -151,8 +103,8 @@ encrypt(std::span<const uint8_t, 32> msg,
   static_assert(c_m_len + b_prm_p_len == ctxt.size(), "Cipher text size must match !");
 
   // step 12
-  (c_m.template mod<T>()).to_bytes(ctxt.subspan(0, c_m_len));
-  b_prm_p.to_bytes(ctxt.subspan(c_m_len, b_prm_p_len));
+  (c_m.template mod<T>()).to_bytes(ctxt.template subspan<0, c_m_len>());
+  b_prm_p.to_bytes(ctxt.template subspan<c_m_len, b_prm_p_len>());
 }
 
 // Given Saber PKE cipher text and Saber PKE secret key, this routine can be used for
@@ -173,19 +125,19 @@ decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt,
   constexpr uint16_t P = 1u << EP;
   constexpr uint16_t T = 1u << ET;
 
-  constexpr auto h2 = compute_poly_h2<Q, EQ, EP, ET>();
+  constexpr auto h2 = saber_consts::compute_poly_h2<Q, EQ, EP, ET>();
 
   // step 2
   mat::poly_matrix_t<L, 1, Q> s(skey);
 
   // step 3, 4, 5
   constexpr size_t cm_len = (ET * poly::N) / 8;
-  poly::poly_t<T> c_m(ctxt.subspan(0, cm_len));
+  poly::poly_t<T> c_m(ctxt.template subspan<0, cm_len>());
   c_m = c_m << (EP - ET);
 
   // step 6
   constexpr size_t ct_len = (L * EP * poly::N) / 8;
-  mat::poly_matrix_t<L, 1, P> b_prm(ctxt.subspan(cm_len, ct_len));
+  mat::poly_matrix_t<L, 1, P> b_prm(ctxt.template subspan<cm_len, ct_len>());
 
   // step 7, 8
   auto v = b_prm.inner_prod(s.template mod<P>());
