@@ -27,6 +27,16 @@ public:
   {
     elements = arr;
   }
+  inline constexpr poly_matrix_t(
+    const std::array<poly::poly_t<moduli>, rows * cols>& arr)
+  {
+    elements = arr;
+  }
+  inline constexpr poly_matrix_t(
+    const std::array<poly::poly_t<moduli>, rows * cols>&& arr)
+  {
+    elements = arr;
+  }
 
   // Given linearized matrix index, returns reference to requested element polynomial.
   // `idx` must ∈ [0, rows * cols).
@@ -142,12 +152,11 @@ public:
   {
     poly_matrix_t<rows, 1, moduli> res;
 
-    auto mat = this;
     for (size_t i = 0; i < rows; i++) {
       poly::poly_t<moduli> poly;
 
       for (size_t j = 0; j < cols; j++) {
-        poly += (mat.elements[i * cols + j] * vec.elements[j]);
+        poly += ((*this)[{ i, j }] * vec[{ j, 0 }]);
       }
       res[i] = poly;
     }
