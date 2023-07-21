@@ -28,6 +28,20 @@ public:
     elements = arr;
   }
 
+  // Given linearized matrix index, returns reference to requested element polynomial.
+  // `idx` must ∈ [0, rows * cols).
+  inline constexpr poly::poly_t<moduli>& operator[](const size_t idx)
+  {
+    return this->elements[idx];
+  }
+
+  // Given linearized matrix index, returns const reference to requested element
+  // polynomial. `idx` must ∈ [0, rows * cols).
+  inline constexpr const poly::poly_t<moduli>& operator[](const size_t idx) const
+  {
+    return this->elements[idx];
+  }
+
   // Given row and column index of matrix, returns reference to requested
   // element polynomial.
   inline constexpr poly::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx)
