@@ -70,6 +70,19 @@ public:
     }
   }
 
+  // Adds two polynomial matrices/ vectors of equal dimension.
+  inline constexpr poly_matrix_t<rows, cols, moduli> operator+(
+    const poly_matrix_t<rows, cols, moduli>& rhs) const
+  {
+    std::array<poly::poly_t<moduli>, rows * cols> res{};
+
+    for (size_t i = 0; i < rows * cols; i++) {
+      res[i] = elements[i] + rhs.elements[i];
+    }
+
+    return res;
+  }
+
   // Left shift each element of the polynomial matrix by factor `off`.
   inline constexpr poly_matrix_t<rows, cols, moduli> operator<<(const size_t off) const
   {
