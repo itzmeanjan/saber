@@ -178,12 +178,12 @@ public:
     return res;
   }
 
-  // Given random byte string ( seed ) of length `seedbytes` as input,
+  // Given random byte string ( seed ) of length `seedBytes` as input,
   // this routine generates a matrix A ∈ Rq^(l×l), following algorithm 15 of
   // spec.
-  template<const size_t seedbytes>
+  template<const size_t seedBytes>
   inline static poly_matrix_t<rows, cols, moduli> gen_matrix(
-    std::span<const uint8_t, seedbytes> seed)
+    std::span<const uint8_t, seedBytes> seed)
     requires(rows == cols)
   {
     constexpr size_t ϵ = saber_params::log2(moduli);
@@ -210,13 +210,12 @@ public:
     return mat;
   }
 
-  // Given random byte string ( seed ) of length `noise_seedbytes` as input,
-  // this routine outputs a secret vector v ∈ Rq^(l×1) with its coefficients
-  // sampled from a centered binomial distribution β_μ, following algorithm 16 of Saber
-  // spec.
-  template<const size_t noise_seedbytes, const size_t mu>
+  // Given random byte string ( seed ) of length `seedBytes` as input, this routine
+  // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from a centered
+  // binomial distribution β_μ, following algorithm 16 of Saber spec.
+  template<const size_t seedBytes, const size_t mu>
   inline static poly_matrix_t<rows, 1, moduli> gen_secret(
-    std::span<const uint8_t, noise_seedbytes> seed)
+    std::span<const uint8_t, seedBytes> seed)
     requires((cols == 1) && saber_params::is_even(mu))
   {
     constexpr uint16_t m = 1u << (mu / 2);

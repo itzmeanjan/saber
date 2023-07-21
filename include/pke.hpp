@@ -7,7 +7,7 @@
 // Algorithms related to Saber Public Key Encryption
 namespace saber_pke {
 
-// Given seedAbytes -bytes `seedA` ( used for generating matrix A ) and seedSbytes
+// Given seedBytes -bytes `seedA` ( used for generating matrix A ) and noiseBytes
 // -bytes `seedS` ( used for generating secret vector s ), this routine can be used for
 // generating a Saber PKE public, private keypair, following algorithm 17 in
 // section 8.4.1 of Saber spec.
@@ -15,19 +15,19 @@ template<const size_t L,
          const size_t EQ,
          const size_t EP,
          const size_t MU,
-         const size_t seedAbytes,
-         const size_t seedSbytes>
+         const size_t seedBytes,
+         const size_t noiseBytes>
 inline void
-keygen(std::span<const uint8_t, seedAbytes> seedA, // step 1
-       std::span<const uint8_t, seedSbytes> seedS, // step 3
-       std::span<uint8_t, saber_utils::pke_pklen<L, EP, seedAbytes>()> pkey,
+keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
+       std::span<const uint8_t, noiseBytes> seedS, // step 3
+       std::span<uint8_t, saber_utils::pke_pklen<L, EP, seedBytes>()> pkey,
        std::span<uint8_t, saber_utils::pke_sklen<L, EQ>()> skey)
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
   constexpr auto h = saber_consts::compute_polyvec_h<L, Q, EQ, EP>();
 
-  std::array<uint8_t, seedAbytes> hashedSeedA{};
+  std::array<uint8_t, seedBytes> hashedSeedA{};
 
   // step 2
   shake128::shake128 hasher;
@@ -37,8 +37,8 @@ keygen(std::span<const uint8_t, seedAbytes> seedA, // step 1
   hasher.reset();
 
   // step 4, 5
-  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedAbytes>(hashedSeedA);
-  auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedSbytes, MU>(seedS);
+  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(hashedSeedA);
+  auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<noiseBytes, MU>(seedS);
 
   // step 6, 7, 8
   auto A_T = A.transpose();
@@ -47,11 +47,11 @@ keygen(std::span<const uint8_t, seedAbytes> seedA, // step 1
 
   // step 9, 10, 11
   s.to_bytes(skey);
-  b_p.to_bytes(pkey.subspan(seedAbytes, pkey.size() - seedAbytes));
-  std::memcpy(pkey.data(), hashedSeedA.data(), seedAbytes);
+  b_p.to_bytes(pkey.subspan(seedBytes, pkey.size() - seedBytes));
+  std::memcpy(pkey.data(), hashedSeedA.data(), seedBytes);
 }
 
-// Given 32 -bytes input message, seedSbytes -bytes `seedS` and Saber PKE public key,
+// Given 32 -bytes input message, seedBytes -bytes `seedS` and Saber PKE public key,
 // this routine can be used for encrypting fixed length message using Saber public key
 // encryption algorithm, computing a cipher text. This routine is an implementation of
 // algorithm 18 in section 8.4.2 of Saber spec.
@@ -60,11 +60,11 @@ template<const size_t L,
          const size_t EP,
          const size_t ET,
          const size_t MU,
-         const size_t seedSbytes>
+         const size_t seedBytes>
 inline void
 encrypt(std::span<const uint8_t, 32> msg,
-        std::span<const uint8_t, seedSbytes> seedS,
-        std::span<const uint8_t, saber_utils::pke_pklen<L, EP, seedSbytes>()> pkey,
+        std::span<const uint8_t, seedBytes> seedS,
+        std::span<const uint8_t, saber_utils::pke_pklen<L, EP, seedBytes>()> pkey,
         std::span<uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt)
 {
   constexpr uint16_t Q = 1u << EQ;
@@ -75,12 +75,12 @@ encrypt(std::span<const uint8_t, 32> msg,
   constexpr auto h = saber_consts::compute_polyvec_h<L, Q, EQ, EP>();
 
   // step 1
-  auto seedA = pkey.template subspan<0, seedSbytes>();
-  auto pk = pkey.template subspan<seedSbytes, pkey.size() - seedSbytes>();
+  auto seedA = pkey.template subspan<0, seedBytes>();
+  auto pk = pkey.template subspan<seedBytes, pkey.size() - seedBytes>();
 
   // step 2, 3
-  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedSbytes>(seedA);
-  auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedSbytes, MU>(seedS);
+  auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(seedA);
+  auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedBytes, MU>(seedS);
 
   // step 4, 5, 6
   auto b_prm = A.template mat_vec_mul<L>(s_prm) + h;
