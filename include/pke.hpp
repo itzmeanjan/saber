@@ -1,5 +1,6 @@
 #pragma once
 #include "consts.hpp"
+#include "params.hpp"
 #include "poly_matrix.hpp"
 #include "polynomial.hpp"
 #include "shake128.hpp"
@@ -22,6 +23,7 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
        std::span<const uint8_t, noiseBytes> seedS, // step 3
        std::span<uint8_t, saber_utils::pke_pklen<L, EP, seedBytes>()> pkey,
        std::span<uint8_t, saber_utils::pke_sklen<L, EQ>()> skey)
+  requires(saber_params::validate_pke_keygen_args(L, EQ, EP, MU, seedBytes, noiseBytes))
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
@@ -66,6 +68,7 @@ encrypt(std::span<const uint8_t, 32> msg,
         std::span<const uint8_t, seedBytes> seedS,
         std::span<const uint8_t, saber_utils::pke_pklen<L, EP, seedBytes>()> pkey,
         std::span<uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt)
+  requires(saber_params::validate_pke_encrypt_args(L, EQ, EP, ET, MU, seedBytes))
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
@@ -120,6 +123,7 @@ inline void
 decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt,
         std::span<const uint8_t, saber_utils::pke_sklen<L, EQ>()> skey,
         std::span<uint8_t, 32> msg)
+  requires(saber_params::validate_pke_decrypt_args(L, EQ, EP, ET, MU))
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
