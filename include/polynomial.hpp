@@ -5,7 +5,7 @@
 #include <array>
 
 // Operations defined over quotient ring Rq
-namespace polynomial {
+namespace poly {
 
 // For all parameter sets of Saber KEM, degree of polynomials over Zq is 255.
 constexpr size_t N = 256;
@@ -21,7 +21,10 @@ private:
 public:
   // Constructors
   inline constexpr poly_t() = default;
-  inline constexpr poly_t(std::array<zq::zq_t, N> arr) { coeffs = arr; }
+  inline constexpr poly_t(std::array<zq::zq_t, N>& arr) { coeffs = arr; }
+  inline constexpr poly_t(std::array<zq::zq_t, N>&& arr) { coeffs = arr; }
+  inline constexpr poly_t(const std::array<zq::zq_t, N>& arr) { coeffs = arr; }
+  inline constexpr poly_t(const std::array<zq::zq_t, N>&& arr) { coeffs = arr; }
 
   // Given a byte array of length log2(moduli) * 32 -bytes, this routine can be
   // used for transforming it into a polynomial, following algorithm 9 of spec.
@@ -132,13 +135,37 @@ public:
 
         coff += 8;
       }
+    } else if constexpr (lg2_moduli == 1) {
+      constexpr uint8_t mask1 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (boff < blen) {
+        const auto word = bstr[boff];
+        boff += 1;
+
+        res[coff] = static_cast<uint16_t>(word & mask1);
+        res[coff + 1] = static_cast<uint16_t>((word >> 1) & mask1);
+        res[coff + 2] = static_cast<uint16_t>((word >> 2) & mask1);
+        res[coff + 3] = static_cast<uint16_t>((word >> 3) & mask1);
+        res[coff + 4] = static_cast<uint16_t>((word >> 4) & mask1);
+        res[coff + 5] = static_cast<uint16_t>((word >> 5) & mask1);
+        res[coff + 6] = static_cast<uint16_t>((word >> 6) & mask1);
+        res[coff + 7] = static_cast<uint16_t>((word >> 7) & mask1);
+
+        coff += 8;
+      }
     }
 
     coeffs = res;
   }
 
-  // Returns coefficient at given polynomial index ∈ [0, N).
-  inline constexpr zq::zq_t operator[](const size_t idx) const
+  // Returns reference to coefficient at given polynomial index ∈ [0, N).
+  inline constexpr zq::zq_t& operator[](const size_t idx) { return coeffs[idx]; }
+
+  // Returns const reference to coefficient at given polynomial index ∈ [0, N).
+  inline constexpr const zq::zq_t& operator[](const size_t idx) const
   {
     return coeffs[idx];
   }
@@ -157,6 +184,18 @@ public:
 
   // Compound addition of two polynomials s.t. their coefficients are over Zq.
   inline constexpr void operator+=(const poly_t& rhs) { *this = *this + rhs; }
+
+  // Subtraction of one polynomial from another one s.t. their coefficients are over Zq.
+  inline constexpr poly_t operator-(const poly_t& rhs) const
+  {
+    std::array<zq::zq_t, N> res{};
+
+    for (size_t i = 0; i < N; i++) {
+      res[i] = coeffs[i] - rhs.coeffs[i];
+    }
+
+    return res;
+  }
 
   // Multiplication of two polynomials s.t. their coefficients are over Zq.
   inline constexpr poly_t operator*(const poly_t& rhs) const
@@ -186,6 +225,14 @@ public:
     }
 
     return res;
+  }
+
+  // Change moduli of polynomial coefficients to different value.
+  template<const uint16_t new_moduli>
+  inline constexpr poly_t<new_moduli> mod() const
+    requires(moduli != new_moduli)
+  {
+    return std::move(coeffs);
   }
 
   // Given a polynomial, this routine can transform it into a byte string of
@@ -263,8 +310,8 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask2) << 6) |
-                     (coeffs[coff].as_raw() & mask6);
+        bstr[boff] =
+          ((coeffs[coff + 1].as_raw() & mask2) << 6) | (coeffs[coff].as_raw() & mask6);
         bstr[boff + 1] = ((coeffs[coff + 2].as_raw() & mask4) << 4) |
                          ((coeffs[coff + 1].as_raw() >> 2) & mask4);
         bstr[boff + 2] = ((coeffs[coff + 3].as_raw() & mask6) << 2) |
@@ -280,8 +327,8 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask) << 4) |
-                     (coeffs[coff].as_raw() & mask);
+        bstr[boff] =
+          ((coeffs[coff + 1].as_raw() & mask) << 4) | (coeffs[coff].as_raw() & mask);
 
         boff += 1;
         coff += 2;
@@ -307,6 +354,25 @@ public:
                          ((coeffs[coff + 5].as_raw() >> 1) & mask2);
 
         boff += 3;
+        coff += 8;
+      }
+    } else if constexpr (lg2_moduli == 1) {
+      constexpr uint16_t mask1 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 7].as_raw() & mask1) << 7) |
+                     ((coeffs[coff + 6].as_raw() & mask1) << 6) |
+                     ((coeffs[coff + 5].as_raw() & mask1) << 5) |
+                     ((coeffs[coff + 4].as_raw() & mask1) << 4) |
+                     ((coeffs[coff + 3].as_raw() & mask1) << 3) |
+                     ((coeffs[coff + 2].as_raw() & mask1) << 2) |
+                     ((coeffs[coff + 1].as_raw() & mask1) << 1) |
+                     (coeffs[coff].as_raw() & mask1);
+
+        boff += 1;
         coff += 8;
       }
     }
