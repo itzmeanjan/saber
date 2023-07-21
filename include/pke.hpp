@@ -90,7 +90,7 @@ keygen(std::span<const uint8_t, seedAbytes> seedA, // step 1
 
   // step 6, 7, 8
   auto A_T = A.transpose();
-  auto b = A_T.mat_vec_mul<L>(s) + h;
+  auto b = A_T.template mat_vec_mul<L>(s) + h;
   auto b_p = (b >> (EQ - EP)).template mod<P>();
 
   // step 9, 10, 11
@@ -131,7 +131,7 @@ encrypt(std::span<const uint8_t, 32> msg,
   auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedSbytes, MU>(seedS);
 
   // step 4, 5, 6
-  auto b_prm = A.mat_vec_mul<L>(s_prm) + h;
+  auto b_prm = A.template mat_vec_mul<L>(s_prm) + h;
   auto b_prm_p = (b_prm >> (EQ - EP)).template mod<P>();
 
   // step 7, 8
