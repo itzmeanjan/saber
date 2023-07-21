@@ -23,6 +23,8 @@ public:
   inline constexpr poly_t() = default;
   inline constexpr poly_t(std::array<zq::zq_t, N>& arr) { coeffs = arr; }
   inline constexpr poly_t(std::array<zq::zq_t, N>&& arr) { coeffs = arr; }
+  inline constexpr poly_t(const std::array<zq::zq_t, N>& arr) { coeffs = arr; }
+  inline constexpr poly_t(const std::array<zq::zq_t, N>&& arr) { coeffs = arr; }
 
   // Given a byte array of length log2(moduli) * 32 -bytes, this routine can be
   // used for transforming it into a polynomial, following algorithm 9 of spec.
@@ -183,6 +185,18 @@ public:
   // Compound addition of two polynomials s.t. their coefficients are over Zq.
   inline constexpr void operator+=(const poly_t& rhs) { *this = *this + rhs; }
 
+  // Subtraction of one polynomial from another one s.t. their coefficients are over Zq.
+  inline constexpr poly_t operator-(const poly_t& rhs) const
+  {
+    std::array<zq::zq_t, N> res{};
+
+    for (size_t i = 0; i < N; i++) {
+      res[i] = coeffs[i] - rhs.coeffs[i];
+    }
+
+    return res;
+  }
+
   // Multiplication of two polynomials s.t. their coefficients are over Zq.
   inline constexpr poly_t operator*(const poly_t& rhs) const
   {
@@ -215,10 +229,10 @@ public:
 
   // Change moduli of polynomial coefficients to different value.
   template<const uint16_t new_moduli>
-  inline constexpr poly_t mod() const
+  inline constexpr poly_t<new_moduli> mod() const
     requires(moduli != new_moduli)
   {
-    return poly_t<new_moduli>(std::move(coeffs));
+    return std::move(coeffs);
   }
 
   // Given a polynomial, this routine can transform it into a byte string of
