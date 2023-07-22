@@ -30,14 +30,13 @@ keygen(
   constexpr size_t pke_pklen = saber_utils::pke_pklen<L, EP, seedBytes>();
   constexpr size_t pke_sklen = saber_utils::pke_sklen<L, EQ>();
 
-  size_t off = 0;
   auto sk_z = skey.template subspan<0, keyBytes>();
-  off += keyBytes;
-  auto sk_hpk = skey.template subspan<off, sha3_256::DIGEST_LEN>();
-  off += sha3_256::DIGEST_LEN;
-  auto sk_pk = skey.template subspan<off, pke_pklen>();
-  off += pke_pklen;
-  auto sk_sk = skey.template subspan<off, pke_sklen>();
+  constexpr size_t off0 = keyBytes;
+  auto sk_hpk = skey.template subspan<off0, sha3_256::DIGEST_LEN>();
+  constexpr size_t off1 = off0 + sha3_256::DIGEST_LEN;
+  auto sk_pk = skey.template subspan<off1, pke_pklen>();
+  constexpr size_t off2 = off1 + pke_pklen;
+  auto sk_sk = skey.template subspan<off2, pke_sklen>();
 
   // step 1
   saber_pke::keygen<L, EQ, EP, MU>(seedA, seedS, pkey, sk_sk);
@@ -98,11 +97,13 @@ encaps(std::span<const uint8_t, keyBytes> m, // step 1
   h512.reset();
 
   // step 6
-  auto k = std::span(rk).subspan<0, keyBytes>();
-  auto r = std::span(rk).subspan<keyBytes, keyBytes>();
+  auto k = std::span(rk).template subspan<0, keyBytes>();
+  auto r = std::span(rk).template subspan<keyBytes, keyBytes>();
 
   // step 7
-  saber_pke::encrypt<L, EQ, EP, ET, MU>(hashed_m, r, pkey, ctxt);
+  auto _hm = std::span<const uint8_t, hashed_m.size()>(hashed_m);
+  auto _r = std::span<const uint8_t, r.size()>(r);
+  saber_pke::encrypt<L, EQ, EP, ET, MU>(_hm, _r, pkey, ctxt);
 
   // step 8
   h256.absorb(ctxt.data(), ctxt.size());
@@ -138,14 +139,13 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
   constexpr size_t pke_sklen = saber_utils::pke_sklen<L, EQ>();
 
   // step 1
-  size_t off = 0;
-  auto z = skey.template subspan<off, keyBytes>();
-  off += keyBytes;
-  auto hash_pk = skey.template subspan<off, sha3_256::DIGEST_LEN>();
-  off += sha3_256::DIGEST_LEN;
-  auto pk = skey.template subspan<off, pke_pklen>();
-  off += pke_pklen;
-  auto sk = skey.template subspan<off, pke_sklen>();
+  auto z = skey.template subspan<0, keyBytes>();
+  constexpr size_t off0 = keyBytes;
+  auto hash_pk = skey.template subspan<off0, sha3_256::DIGEST_LEN>();
+  constexpr size_t off1 = off0 + sha3_256::DIGEST_LEN;
+  auto pk = skey.template subspan<off1, pke_pklen>();
+  constexpr size_t off2 = off1 + pke_pklen;
+  auto sk = skey.template subspan<off2, pke_sklen>();
 
   std::array<uint8_t, sha3_256::DIGEST_LEN> m;
   std::array<uint8_t, sha3_512::DIGEST_LEN> rk;
@@ -165,16 +165,18 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
   h512.reset();
 
   // step 5
-  auto k = std::span(rk).subspan<0, keyBytes>();
-  auto r = std::span(rk).subspan<keyBytes, keyBytes>();
+  auto k = std::span(rk).template subspan<0, keyBytes>();
+  auto r = std::span(rk).template subspan<keyBytes, keyBytes>();
 
   // step 6
-  saber_pke::encrypt<L, EQ, EP, ET, MU>(m, r, pk, ctxt_prm);
+  auto _m = std::span<const uint8_t, m.size()>(m);
+  auto _r = std::span<const uint8_t, r.size()>(r);
+  saber_pke::encrypt<L, EQ, EP, ET, MU>(_m, _r, pk, ctxt_prm);
 
   // step 7
-  auto c = saber_utils::ct_eq_bytes(ctxt_prm, ctxt);
+  auto c = saber_utils::ct_eq_bytes<ctxt.size()>(ctxt_prm, ctxt);
   // step 9, 10, 11, 12
-  saber_utils::ct_sel_bytes(c, temp, k, z);
+  saber_utils::ct_sel_bytes<temp.size()>(c, temp, k, z);
 
   // step 8
   sha3_256::sha3_256 h256;
