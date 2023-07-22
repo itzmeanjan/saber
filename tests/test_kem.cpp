@@ -28,34 +28,34 @@ test_saber_kem()
   std::vector<uint8_t> seedS(noiseBytes);
   std::vector<uint8_t> z(keyBytes);
   std::vector<uint8_t> m(keyBytes);
-
   std::vector<uint8_t> pkey(pklen);
   std::vector<uint8_t> skey(sklen);
   std::vector<uint8_t> ctxt(ctlen);
   std::vector<uint8_t> seskey_a(sslen);
   std::vector<uint8_t> seskey_b(sslen);
 
+  auto _seedA = std::span<uint8_t, seedBytes>(seedA);
+  auto _seedS = std::span<uint8_t, noiseBytes>(seedS);
+  auto _z = std::span<uint8_t, keyBytes>(z);
+  auto _m = std::span<uint8_t, keyBytes>(m);
+  auto _pkey = std::span<uint8_t, pklen>(pkey);
+  auto _skey = std::span<uint8_t, sklen>(skey);
+  auto _ctxt = std::span<uint8_t, ctlen>(ctxt);
+  auto _seskey_a = std::span<uint8_t, sslen>(seskey_a);
+  auto _seskey_b = std::span<uint8_t, sslen>(seskey_b);
+
   prng::prng_t prng;
-  prng.read(seedA);
-  prng.read(seedS);
-  prng.read(z);
-  prng.read(m);
+
+  prng.read(_seedA);
+  prng.read(_seedS);
+  prng.read(_z);
+  prng.read(_m);
 
   saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes>(
-    std::span<const uint8_t, seedBytes>(seedA),
-    std::span<const uint8_t, noiseBytes>(seedS),
-    std::span<const uint8_t, keyBytes>(z),
-    std::span<uint8_t, pklen>(pkey),
-    std::span<uint8_t, sklen>(skey));
+    _seedA, _seedS, _z, _pkey, _skey);
   saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(
-    std::span<const uint8_t, keyBytes>(m),
-    std::span<const uint8_t, pklen>(pkey),
-    std::span<uint8_t, ctlen>(ctxt),
-    std::span<uint8_t, sslen>(seskey_a));
-  saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(
-    std::span<const uint8_t, ctlen>(ctxt),
-    std::span<const uint8_t, sklen>(skey),
-    std::span<uint8_t, sslen>(seskey_b));
+    _m, _pkey, _ctxt, _seskey_a);
+  saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(_ctxt, _skey, _seskey_b);
 
   ASSERT_EQ(seskey_a, seskey_b);
 }

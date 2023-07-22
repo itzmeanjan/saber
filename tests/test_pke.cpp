@@ -15,43 +15,44 @@ template<const size_t L,
          const size_t EP,
          const size_t ET,
          const size_t MU,
-         const size_t seedAbytes,
-         const size_t seedSbytes>
+         const size_t seedBytes,
+         const size_t noiseBytes>
 void
 test_saber_pke()
 {
-  constexpr size_t pklen = saber_utils::pke_pklen<L, EP, seedAbytes>();
+  constexpr size_t pklen = saber_utils::pke_pklen<L, EP, seedBytes>();
   constexpr size_t sklen = saber_utils::pke_sklen<L, EQ>();
   constexpr size_t ctlen = saber_utils::pke_ctlen<L, EP, ET>();
   constexpr size_t mlen = 32; // bytes
 
-  std::vector<uint8_t> seedA(seedAbytes);
-  std::vector<uint8_t> seedS(seedSbytes);
-  std::vector<uint8_t> seedS_prm(seedAbytes);
+  std::vector<uint8_t> seedA(seedBytes);
+  std::vector<uint8_t> seedS(noiseBytes);
+  std::vector<uint8_t> seedS_prm(seedBytes);
   std::vector<uint8_t> msg(mlen);
   std::vector<uint8_t> dec(mlen, 0);
-
   std::vector<uint8_t> pkey(pklen);
   std::vector<uint8_t> skey(sklen);
   std::vector<uint8_t> ctxt(ctlen);
 
   prng::prng_t prng;
+
   prng.read(seedA);
   prng.read(seedS);
   prng.read(seedS_prm);
   prng.read(msg);
 
-  saber_pke::keygen<L, EQ, EP, MU>(std::span<const uint8_t, seedAbytes>(seedA),
-                                   std::span<const uint8_t, seedSbytes>(seedS),
-                                   std::span<uint8_t, pklen>(pkey),
-                                   std::span<uint8_t, sklen>(skey));
-  saber_pke::encrypt<L, EQ, EP, ET, MU>(std::span<const uint8_t, mlen>(msg),
-                                        std::span<const uint8_t, seedAbytes>(seedS_prm),
-                                        std::span<uint8_t, pklen>(pkey),
-                                        std::span<uint8_t, ctlen>(ctxt));
-  saber_pke::decrypt<L, EQ, EP, ET, MU>(std::span<uint8_t, ctlen>(ctxt),
-                                        std::span<uint8_t, sklen>(skey),
-                                        std::span<uint8_t, mlen>(dec));
+  auto _seedA = std::span<const uint8_t, seedBytes>(seedA);
+  auto _seedS = std::span<const uint8_t, noiseBytes>(seedS);
+  auto _seedS_prm = std::span<const uint8_t, seedBytes>(seedS_prm);
+  auto _msg = std::span<uint8_t, mlen>(msg);
+  auto _dec = std::span<uint8_t, mlen>(dec);
+  auto _pkey = std::span<uint8_t, pklen>(pkey);
+  auto _skey = std::span<uint8_t, sklen>(skey);
+  auto _ctxt = std::span<uint8_t, ctlen>(ctxt);
+
+  saber_pke::keygen<L, EQ, EP, MU>(_seedA, _seedS, _pkey, _skey);
+  saber_pke::encrypt<L, EQ, EP, ET, MU>(_msg, _seedS_prm, _pkey, _ctxt);
+  saber_pke::decrypt<L, EQ, EP, ET, MU>(_ctxt, _skey, _dec);
 
   ASSERT_EQ(msg, dec);
 }
