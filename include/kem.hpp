@@ -1,6 +1,7 @@
 #pragma once
 #include "pke.hpp"
 #include "sha3_256.hpp"
+#include "sha3_512.hpp"
 #include "utils.hpp"
 
 // Algorithms related to Saber Key Encapsulation Mechanism
@@ -52,6 +53,69 @@ keygen(
 
   // step 4 ( partial )
   std::memcpy(sk_z.data(), z.data(), z.size());
+}
+
+// Given keyBytes input `m` ( random sampled ) and Saber KEM public key, this routine
+// can be used for generating a session key ( of 32 -bytes ) and Saber KEM cipher text.
+// This is an implementation of algorithm 21 in section 8.5.2 of Saber spec.
+template<const size_t L,
+         const size_t EQ,
+         const size_t EP,
+         const size_t ET,
+         const size_t MU,
+         const size_t seedBytes,
+         const size_t keyBytes>
+inline void
+encaps(std::span<const uint8_t, keyBytes> m, // step 1
+       std::span<const uint8_t, saber_utils::kem_pklen<L, EP, seedBytes>()> pkey,
+       std::span<uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
+       std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
+{
+  std::array<uint8_t, sha3_256::DIGEST_LEN> hashed_m;
+  std::array<uint8_t, sha3_256::DIGEST_LEN> hashed_pk;
+  std::array<uint8_t, sha3_512::DIGEST_LEN> rk;
+  std::array<uint8_t, sha3_256::DIGEST_LEN> r_prm;
+
+  // step 2
+  sha3_256::sha3_256 h256;
+  h256.absorb(m.data(), m.size());
+  h256.finalize();
+  h256.digest(hashed_m.data());
+  h256.reset();
+
+  // step 3
+  h256.absorb(pkey.data(), pkey.size());
+  h256.finalize();
+  h256.digest(hashed_pk.data());
+  h256.reset();
+
+  // step 4, 5
+  sha3_512::sha3_512 h512;
+  h512.absorb(hashed_m.data(), hashed_m.size());
+  h512.absorb(hashed_pk.data(), hashed_pk.size());
+  h512.finalize();
+  h512.digest(rk.data());
+  h512.reset();
+
+  // step 6
+  auto k = std::span(rk).subspan<0, keyBytes>();
+  auto r = std::span(rk).subspan<keyBytes, keyBytes>();
+
+  // step 7
+  saber_pke::encrypt<L, EQ, EP, ET, MU>(hashed_m, r, pkey, ctxt);
+
+  // step 8
+  h256.absorb(ctxt.data(), ctxt.size());
+  h256.finalize();
+  h256.digest(r_prm.data());
+  h256.reset();
+
+  // step 9, 10
+  h256.absorb(k.data(), k.size());
+  h256.absorb(r_prm.data(), r_prm.size());
+  h256.finalize();
+  h256.digest(seskey.data());
+  h256.reset();
 }
 
 }
