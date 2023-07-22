@@ -1,4 +1,5 @@
 #pragma once
+#include "sha3_256.hpp"
 #include <bit>
 #include <cstddef>
 #include <cstdint>
@@ -67,11 +68,11 @@ from_le_bytes(std::span<const uint8_t> bytes)
 }
 
 // Compile-time compute byte length of public key encryption's public key.
-template<const size_t L, const size_t EP, const size_t seedAbytes>
+template<const size_t L, const size_t EP, const size_t seedBytes>
 inline constexpr size_t
 pke_pklen()
 {
-  return seedAbytes + (L * EP * 256) / 8;
+  return seedBytes + (L * EP * 256) / 8;
 }
 
 // Compile-time compute byte length of public key encryption's secret key.
@@ -89,6 +90,36 @@ pke_ctlen()
   requires(EP > ET)
 {
   return (ET * 256) / 8 + (L * EP * 256) / 8;
+}
+
+// Compile-time compute byte length of key encapsulation mechanism's public key.
+template<const size_t L, const size_t EP, const size_t seedBytes>
+inline constexpr size_t
+kem_pklen()
+{
+  return pke_pklen<L, EP, seedBytes>();
+}
+
+// Compile-time compute byte length of key encapsulation mechanism's secret key.
+template<const size_t L,
+         const size_t EQ,
+         const size_t EP,
+         const size_t seedBytes,
+         const size_t keyBytes>
+inline constexpr size_t
+kem_sklen()
+{
+  return keyBytes + sha3_256::DIGEST_LEN + // randomness + hash(PKE pubkey)
+         pke_pklen<L, EP, seedBytes>() +   // PKE pubkey
+         pke_sklen<L, EQ>();               // PKE seckey
+}
+
+// Compile-time compute byte length of key encapsulation mechanism's cipher text.
+template<const size_t L, const size_t EP, const size_t ET>
+inline constexpr size_t
+kem_ctlen()
+{
+  return pke_ctlen<L, EP, ET>();
 }
 
 }
