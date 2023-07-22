@@ -128,14 +128,30 @@ kem_ctlen()
 // 0x00000000 ).
 template<const size_t L>
 inline constexpr uint32_t
-ct_eq_bytes(std::span<const uint8_t, L> bytea, std::span<const uint8_t, L> byteb)
+ct_eq_bytes(std::span<const uint8_t, L> bytesa, std::span<const uint8_t, L> bytesb)
 {
   uint32_t flag = -1u;
   for (size_t i = 0; i < L; i++) {
-    flag &= subtle::ct_eq<uint8_t, uint32_t>(bytea[i], byteb[i]);
+    flag &= subtle::ct_eq<uint8_t, uint32_t>(bytesa[i], bytesb[i]);
   }
 
   return flag;
+}
+
+// If flag holds TRUTH value ( 0xffffffff ), bytes from `bytesa` are copied to `dst`.
+// If flag holds FALSE value ( 0x00000000 ), bytes from `bytesb` are copied to `dst`.
+//
+// If flag holds any other value, it's undefined behaviour.
+template<const size_t L>
+inline constexpr void
+ct_sel_bytes(const uint32_t flag,
+             std::span<uint8_t, L> dst,
+             std::span<const uint8_t, L> bytesa,
+             std::span<const uint8_t, L> bytesb)
+{
+  for (size_t i = 0; i < L; i++) {
+    dst[i] = subtle::ct_select(flag, bytesa[i], bytesb[i]);
+  }
 }
 
 }
