@@ -88,4 +88,56 @@ validate_pke_decrypt_args(const size_t L,
          ((L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) && (MU == 6)); // FireSaber
 }
 
+// Compile-time executable check for validating template arguments passed to Saber KEM
+// key generation routine.
+inline constexpr bool
+validate_kem_keygen_args(const size_t L,
+                         const size_t EQ,
+                         const size_t EP,
+                         const size_t MU,
+                         const size_t seedBytes,
+                         const size_t noiseBytes,
+                         const size_t keyBytes)
+{
+  return ((L == 2) && (EQ == 13) && (EP == 10) && (MU == 10) && (seedBytes == 32) &&
+          (noiseBytes == 32) && (keyBytes == 32)) || // LightSaber
+         ((L == 3) && (EQ == 13) && (EP == 10) && (MU == 8) && (seedBytes == 32) &&
+          (noiseBytes == 32) && (keyBytes == 32)) || // Saber
+         ((L == 4) && (EQ == 13) && (EP == 10) && (MU == 6) && (seedBytes == 32) &&
+          (noiseBytes == 32) && (keyBytes == 32)); // FireSaber
+}
+
+// Compile-time executable check for validating template arguments passed to Saber KEM
+// encapsulation routine.
+inline constexpr bool
+validate_kem_encaps_args(const size_t L,
+                         const size_t EQ,
+                         const size_t EP,
+                         const size_t ET,
+                         const size_t MU,
+                         const size_t seedBytes,
+                         const size_t keyBytes)
+{
+  return ((L == 2) && (EQ == 13) && (EP == 10) && (ET == 3) && (MU == 10) &&
+          (seedBytes == 32) && (keyBytes == 32)) || // LightSaber
+         ((L == 3) && (EQ == 13) && (EP == 10) && (ET == 4) && (MU == 8) &&
+          (seedBytes == 32) && (keyBytes == 32)) || // Saber
+         ((L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) && (MU == 6) &&
+          (seedBytes == 32) && (keyBytes == 32)); // FireSaber
+}
+
+// Compile-time executable check for validating template arguments passed to Saber KEM
+// decapsulation routine.
+inline constexpr bool
+validate_kem_decaps_args(const size_t L,
+                         const size_t EQ,
+                         const size_t EP,
+                         const size_t ET,
+                         const size_t MU,
+                         const size_t seedBytes,
+                         const size_t keyBytes)
+{
+  return validate_kem_encaps_args(L, EQ, EP, ET, MU, seedBytes, keyBytes);
+}
+
 }

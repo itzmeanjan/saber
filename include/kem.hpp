@@ -1,4 +1,5 @@
 #pragma once
+#include "params.hpp"
 #include "pke.hpp"
 #include "sha3_256.hpp"
 #include "sha3_512.hpp"
@@ -26,6 +27,13 @@ keygen(
   std::span<const uint8_t, keyBytes> z,
   std::span<uint8_t, saber_utils::kem_pklen<L, EP, seedBytes>()> pkey,
   std::span<uint8_t, saber_utils::kem_sklen<L, EQ, EP, seedBytes, keyBytes>()> skey)
+  requires(saber_params::validate_kem_keygen_args(L,
+                                                  EQ,
+                                                  EP,
+                                                  MU,
+                                                  seedBytes,
+                                                  noiseBytes,
+                                                  keyBytes))
 {
   constexpr size_t pke_pklen = saber_utils::pke_pklen<L, EP, seedBytes>();
   constexpr size_t pke_sklen = saber_utils::pke_sklen<L, EQ>();
@@ -69,6 +77,8 @@ encaps(std::span<const uint8_t, keyBytes> m, // step 1
        std::span<const uint8_t, saber_utils::kem_pklen<L, EP, seedBytes>()> pkey,
        std::span<uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
+  requires(
+    saber_params::validate_kem_encaps_args(L, EQ, EP, ET, MU, seedBytes, keyBytes))
 {
   std::array<uint8_t, sha3_256::DIGEST_LEN> hashed_m;
   std::array<uint8_t, sha3_256::DIGEST_LEN> hashed_pk;
@@ -134,6 +144,8 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
        std::span<const uint8_t,
                  saber_utils::kem_sklen<L, EQ, EP, seedBytes, keyBytes>()> skey,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
+  requires(
+    saber_params::validate_kem_decaps_args(L, EQ, EP, ET, MU, seedBytes, keyBytes))
 {
   constexpr size_t pke_pklen = saber_utils::pke_pklen<L, EP, seedBytes>();
   constexpr size_t pke_sklen = saber_utils::pke_sklen<L, EQ>();
