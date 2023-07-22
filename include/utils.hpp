@@ -1,5 +1,6 @@
 #pragma once
 #include "sha3_256.hpp"
+#include "subtle.hpp"
 #include <bit>
 #include <cstddef>
 #include <cstdint>
@@ -120,6 +121,21 @@ inline constexpr size_t
 kem_ctlen()
 {
   return pke_ctlen<L, EP, ET>();
+}
+
+// Compare equality of two byte arrays of equal length in constant-time, returning TRUTH
+// value ( 0xffffffff ) in case they are same, otherwise it returns FALSE value (
+// 0x00000000 ).
+template<const size_t L>
+inline constexpr uint32_t
+ct_eq_bytes(std::span<const uint8_t, L> bytea, std::span<const uint8_t, L> byteb)
+{
+  uint32_t flag = -1u;
+  for (size_t i = 0; i < L; i++) {
+    flag &= subtle::ct_eq<uint8_t, uint32_t>(bytea[i], byteb[i]);
+  }
+
+  return flag;
 }
 
 }
