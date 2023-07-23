@@ -1,6 +1,25 @@
 # saber
 Saber: Post-Quantum Key Encapsulation Mechanism
 
+> **Warning** This header-only library implementation of Saber KEM is attempted to be constant-time though it's not yet audited. If you consider using it in production environment, be careful !
+
+## Overview
+
+Saber is a family of cryptographic primitives that rely on the hardness of the Module Learning With Rounding (Mod-LWR) problem. Saber offers an IND-CPA secure public key encryption algorithm, which is transformed to an IND-CCA secure key encapsulation mechanism, using a version of Fujisaki-Okamoto transform. 
+
+It's a zero-dependency, header-only C++ library implementation of Saber KEM scheme, as described in specification https://www.esat.kuleuven.be/cosic/pqcrypto/saber/files/saberspecround3.pdf and instantiating all parameter sets, suggested in section 8.1 on table 8 of Saber spec.
+
+KEM scheme offers three major algorithms.
+
+Algorithm | Input | Output | How is it used ?
+--- | :-: | :-: | --:
+keygen | 32 -bytes random seed `seedA`, 32 -bytes random noise `seedS` and 32 -bytes random key `z` | Public and private keypair | Imagine two parties `peer0` & `peer1`, want to securely ( using symmetric key encryption i.e. some AEAD scheme ) communicate over insecure channel. One of them, say `peer0`, generates an ephemeral KEM keypair and publish its public key to other peer i.e. `peer1`.
+encaps | 32 -bytes random seed `m` and receiver's public key | Cipher text and 32 -bytes session key | `Peer1` encapsulates 32 -bytes message inside cipher text, using `peer0`'s public key. And then it shares the cipher text with `peer0`, over insecure channel. Finally `peer1` also derives a 32 -bytes session key, which it can now use with symmetric key constructions.
+decaps | Cipher text and receiver's private key | 32 -bytes session key | `Peer0` uses its private key for decapsulating the cipher text it received from `peer1`, deriving the same 32 -bytes session key. Now both of the parties have same 32 -bytes session key, they can use it for enciphering their communication.
+
+For learning more about Saber, follow their website @ https://www.esat.kuleuven.be/cosic/pqcrypto/saber. Also note that Saber was a round 3 finalist of NIST PQC standardization effort, more @ https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/round-3-submissions.
+
+
 ## Prerequisites
 
 - A C++ compiler with C++20 standard library.
