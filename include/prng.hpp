@@ -30,6 +30,7 @@ private:
   shake128::shake128 state;
 
 public:
+  // Default one, exercise caution if considering to use it for sampling randomness.
   inline prng_t()
   {
     uint8_t seed[32];
@@ -50,6 +51,7 @@ public:
     state.finalize();
   }
 
+  // Preferred alternative, consider passing >= 32 -bytes random seed.
   inline explicit prng_t(std::span<const uint8_t> seed)
   {
     state.absorb(seed.data(), seed.size());
