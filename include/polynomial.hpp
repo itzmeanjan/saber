@@ -102,6 +102,28 @@ public:
 
         coff += 4;
       }
+    } else if constexpr (lg2_moduli == 5) {
+      constexpr uint64_t mask5 = (1ul << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (boff < blen) {
+        const auto ptr = bstr.subspan(boff, 5);
+        const auto word = saber_utils::from_le_bytes<uint64_t>(ptr);
+        boff += 5;
+
+        res[coff] = static_cast<uint16_t>(word & mask5);
+        res[coff + 1] = static_cast<uint16_t>((word >> 5) & mask5);
+        res[coff + 2] = static_cast<uint16_t>((word >> 10) & mask5);
+        res[coff + 3] = static_cast<uint16_t>((word >> 15) & mask5);
+        res[coff + 4] = static_cast<uint16_t>((word >> 20) & mask5);
+        res[coff + 5] = static_cast<uint16_t>((word >> 25) & mask5);
+        res[coff + 6] = static_cast<uint16_t>((word >> 30) & mask5);
+        res[coff + 7] = static_cast<uint16_t>((word >> 35) & mask5);
+
+        coff += 8;
+      }
     } else if constexpr (lg2_moduli == 4) {
       constexpr uint8_t mask = (1u << lg2_moduli) - 1;
 
@@ -322,6 +344,33 @@ public:
 
         boff += 3;
         coff += 4;
+      }
+    } else if constexpr (lg2_moduli == 5) {
+      constexpr uint16_t mask5 = (1u << lg2_moduli) - 1;
+      constexpr uint16_t mask4 = mask5 >> 1;
+      constexpr uint16_t mask3 = mask4 >> 1;
+      constexpr uint16_t mask2 = mask3 >> 1;
+      constexpr uint16_t mask1 = mask2 >> 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask3) << 5) |
+                     (coeffs[coff + 0].as_raw() & mask5);
+        bstr[boff + 1] = ((coeffs[coff + 3].as_raw() & mask1) << 7) |
+                         ((coeffs[coff + 2].as_raw() & mask5) << 2) |
+                         ((coeffs[coff + 1].as_raw() >> 3) & mask2);
+        bstr[boff + 2] = ((coeffs[coff + 4].as_raw() & mask4) << 4) |
+                         ((coeffs[coff + 3].as_raw() >> 1) & mask4);
+        bstr[boff + 3] = ((coeffs[coff + 6].as_raw() & mask2) << 6) |
+                         ((coeffs[coff + 5].as_raw() & mask5) << 1) |
+                         ((coeffs[coff + 4].as_raw() >> 4) & mask1);
+        bstr[boff + 4] = ((coeffs[coff + 7].as_raw() & mask5) << 3) |
+                         ((coeffs[coff + 6].as_raw() >> 2) & mask3);
+
+        boff += 5;
+        coff += 8;
       }
     } else if constexpr (lg2_moduli == 4) {
       constexpr uint8_t mask = (1u << lg2_moduli) - 1;
