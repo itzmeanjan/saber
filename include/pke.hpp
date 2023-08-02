@@ -47,10 +47,15 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
   auto b = A_T.template mat_vec_mul<L>(s) + h;
   auto b_p = (b >> (EQ - EP)).template mod<P>();
 
-  // step 9, 10, 11
+  // step 9
   s.to_bytes(skey);
-  b_p.to_bytes(pkey.subspan(seedBytes, pkey.size() - seedBytes));
-  std::memcpy(pkey.data(), hashedSeedA.data(), seedBytes);
+
+  // step 10, 11
+  auto pkey_pk = pkey.template subspan<0, pkey.size() - seedBytes>();
+  auto pkey_seedA = pkey.template subspan<pkey_pk.size(), seedBytes>();
+
+  b_p.to_bytes(pkey_pk);
+  std::memcpy(pkey_seedA.data(), hashedSeedA.data(), seedBytes);
 }
 
 // Given 32 -bytes input message, seedBytes -bytes `seedS` and Saber PKE public key,
@@ -78,8 +83,8 @@ encrypt(std::span<const uint8_t, 32> msg,
   constexpr auto h = saber_consts::compute_polyvec_h<L, Q, EQ, EP>();
 
   // step 1
-  auto seedA = pkey.template subspan<0, seedBytes>();
-  auto pk = pkey.template subspan<seedBytes, pkey.size() - seedBytes>();
+  auto pk = pkey.template subspan<0, pkey.size() - seedBytes>();
+  auto seedA = pkey.template subspan<pk.size(), seedBytes>();
 
   // step 2, 3
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(seedA);
@@ -101,13 +106,16 @@ encrypt(std::span<const uint8_t, 32> msg,
   // step 11
   auto c_m = (v_prm - m_p + (h1.template mod<P>())) >> (EP - ET);
 
-  constexpr size_t c_m_len = (ET * poly::N) / 8;
-  constexpr size_t b_prm_p_len = (L * EP * poly::N) / 8;
-  static_assert(c_m_len + b_prm_p_len == ctxt.size(), "Cipher text size must match !");
-
   // step 12
-  (c_m.template mod<T>()).to_bytes(ctxt.template subspan<0, c_m_len>());
-  b_prm_p.to_bytes(ctxt.template subspan<c_m_len, b_prm_p_len>());
+  constexpr size_t b_prm_p_len = (L * EP * poly::N) / 8;
+  constexpr size_t c_m_len = (ET * poly::N) / 8;
+  static_assert(b_prm_p_len + c_m_len == ctxt.size(), "Cipher text size must match !");
+
+  auto ctxt_ct = ctxt.template subspan<0, b_prm_p_len>();
+  auto ctxt_cm = ctxt.template subspan<ctxt_ct.size(), c_m_len>();
+
+  b_prm_p.to_bytes(ctxt_ct);
+  (c_m.template mod<T>()).to_bytes(ctxt_cm);
 }
 
 // Given Saber PKE cipher text and Saber PKE secret key, this routine can be used for
@@ -134,14 +142,20 @@ decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt,
   // step 2
   mat::poly_matrix_t<L, 1, Q> s(skey);
 
-  // step 3, 4, 5
+  // step 3
+  constexpr size_t ct_len = (L * EP * poly::N) / 8;
   constexpr size_t cm_len = (ET * poly::N) / 8;
-  poly::poly_t<T> c_m(ctxt.template subspan<0, cm_len>());
+  static_assert(ct_len + cm_len == ctxt.size(), "Cipher text size must match !");
+
+  auto ctxt_ct = ctxt.template subspan<0, ct_len>();
+  auto ctxt_cm = ctxt.template subspan<ct_len, cm_len>();
+
+  // step 4, 5
+  poly::poly_t<T> c_m(ctxt_cm);
   c_m = c_m << (EP - ET);
 
   // step 6
-  constexpr size_t ct_len = (L * EP * poly::N) / 8;
-  mat::poly_matrix_t<L, 1, P> b_prm(ctxt.template subspan<cm_len, ct_len>());
+  mat::poly_matrix_t<L, 1, P> b_prm(ctxt_ct);
 
   // step 7, 8
   auto v = b_prm.inner_prod(s.template mod<P>());

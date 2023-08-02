@@ -1,9 +1,8 @@
 #pragma once
+#include "cbd.hpp"
 #include "params.hpp"
 #include "polynomial.hpp"
 #include "shake128.hpp"
-#include <array>
-#include <span>
 
 // Operations defined over matrix/ vector of polynomials.
 namespace mat {
@@ -218,53 +217,23 @@ public:
     std::span<const uint8_t, seedBytes> seed)
     requires((cols == 1) && saber_params::is_even(mu))
   {
-    constexpr uint16_t m = 1u << (mu / 2);
     constexpr size_t poly_blen = (poly::N * mu) / 8;
     constexpr size_t buf_blen = rows * poly_blen;
 
     poly_matrix_t<rows, 1, moduli> vec;
 
     std::array<uint8_t, buf_blen> buf{};
-    auto bufs = std::span<uint8_t, buf_blen>(buf);
+    auto _buf = std::span<uint8_t, buf_blen>(buf);
 
     shake128::shake128 hasher;
     hasher.absorb(seed.data(), seed.size());
     hasher.finalize();
-    hasher.squeeze(buf.data(), buf.size());
+    hasher.squeeze(_buf.data(), _buf.size());
     hasher.reset();
 
     for (size_t i = 0; i < rows; i++) {
-      size_t off = i * poly_blen;
-
-      auto bstr_a = bufs.subspan(off, poly_blen / 2);
-      poly::poly_t<m> poly_a(bstr_a);
-
-      size_t j = 0, k = 0;
-      while (j < poly::N / 2) {
-        const auto hw0 = poly_a[k].template hamming_weight<m>();
-        const auto hw1 = poly_a[k + 1].template hamming_weight<m>();
-
-        vec.elements[i][j] = hw0 - hw1;
-
-        j += 1;
-        k += 2;
-      }
-
-      off += bstr_a.size();
-
-      auto bstr_b = bufs.subspan(off, poly_blen / 2);
-      poly::poly_t<m> poly_b(bstr_b);
-
-      k = 0;
-      while (j < poly::N) {
-        const auto hw0 = poly_b[k].template hamming_weight<m>();
-        const auto hw1 = poly_b[k + 1].template hamming_weight<m>();
-
-        vec.elements[i][j] = hw0 - hw1;
-
-        j += 1;
-        k += 2;
-      }
+      const size_t off = i * poly_blen;
+      vec[i] = saber_utils::cbd<moduli, mu>(_buf.subspan(off, poly_blen));
     }
 
     return vec;

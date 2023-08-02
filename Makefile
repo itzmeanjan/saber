@@ -36,10 +36,10 @@ benchmarks/perf.out: benchmarks/bench_kem.cpp include/*.hpp
 	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) $< -lbenchmark -lpthread -lpfm -lbenchmark_main -o $@
 
 benchmark: benchmarks/bench.out
-	./$< --benchmark_time_unit=us --benchmark_counters_tabular=true
+	./$< --benchmark_min_warmup_time=.5 --benchmark_time_unit=us --benchmark_counters_tabular=true
 
 perf: benchmarks/perf.out
-	./$< --benchmark_time_unit=us --benchmark_counters_tabular=true --benchmark_perf_counters=CYCLES
+	./$< --benchmark_min_warmup_time=.5 --benchmark_time_unit=us --benchmark_counters_tabular=true --benchmark_perf_counters=CYCLES
 
 clean:
 	find . -name '*.out' -o -name '*.o' -o -name '*.so' -o -name '*.gch' | xargs rm -rf

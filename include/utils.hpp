@@ -73,7 +73,7 @@ template<const size_t L, const size_t EP, const size_t seedBytes>
 inline constexpr size_t
 pke_pklen()
 {
-  return seedBytes + (L * EP * 256) / 8;
+  return (L * EP * 256) / 8 + seedBytes;
 }
 
 // Compile-time compute byte length of public key encryption's secret key.
@@ -90,7 +90,7 @@ inline constexpr size_t
 pke_ctlen()
   requires(EP > ET)
 {
-  return (ET * 256) / 8 + (L * EP * 256) / 8;
+  return (L * EP * 256) / 8 + (ET * 256) / 8;
 }
 
 // Compile-time compute byte length of key encapsulation mechanism's public key.
@@ -110,9 +110,9 @@ template<const size_t L,
 inline constexpr size_t
 kem_sklen()
 {
-  return keyBytes + sha3_256::DIGEST_LEN + // randomness + hash(PKE pubkey)
-         pke_pklen<L, EP, seedBytes>() +   // PKE pubkey
-         pke_sklen<L, EQ>();               // PKE seckey
+  return pke_sklen<L, EQ>() +             // PKE seckey
+         pke_pklen<L, EP, seedBytes>() +  // PKE pubkey
+         sha3_256::DIGEST_LEN + keyBytes; // hash(PKE pubkey) + randomness
 }
 
 // Compile-time compute byte length of key encapsulation mechanism's cipher text.

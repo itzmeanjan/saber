@@ -23,7 +23,7 @@ test_poly_conversion()
   poly::poly_t<moduli> poly(src_bstr);
   poly.to_bytes(dst_bstr);
 
-  ASSERT_EQ(src_bstr, dst_bstr);
+  EXPECT_EQ(src_bstr, dst_bstr);
 }
 
 TEST(SaberKEM, PolynomialConversion)
@@ -31,6 +31,7 @@ TEST(SaberKEM, PolynomialConversion)
   test_poly_conversion<(1 << 1)>();
   test_poly_conversion<(1 << 3)>();
   test_poly_conversion<(1 << 4)>();
+  test_poly_conversion<(1 << 5)>();
   test_poly_conversion<(1 << 6)>();
   test_poly_conversion<(1 << 10)>();
   test_poly_conversion<(1 << 13)>();
