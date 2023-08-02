@@ -24,18 +24,28 @@ test_poly_matrix_conversion()
   mat::poly_matrix_t<rows, 1, moduli> pmat(src_bstr);
   pmat.to_bytes(dst_bstr);
 
-  ASSERT_EQ(src_bstr, dst_bstr);
+  EXPECT_EQ(src_bstr, dst_bstr);
 }
 
 TEST(SaberKEM, PolynomialMatrixConversion)
 {
-  test_poly_matrix_conversion<2, (1 << 3)>();
-  test_poly_matrix_conversion<3, (1 << 4)>();
-  test_poly_matrix_conversion<4, (1 << 6)>();
-  test_poly_matrix_conversion<2, (1 << 10)>();
-  test_poly_matrix_conversion<3, (1 << 10)>();
-  test_poly_matrix_conversion<4, (1 << 10)>();
-  test_poly_matrix_conversion<2, (1 << 13)>();
-  test_poly_matrix_conversion<3, (1 << 13)>();
-  test_poly_matrix_conversion<4, (1 << 13)>();
+  // moduli = 1 << ET
+  test_poly_matrix_conversion<2, (1 << 3)>(); // lightsaber
+  test_poly_matrix_conversion<3, (1 << 4)>(); // saber
+  test_poly_matrix_conversion<4, (1 << 6)>(); // firesaber
+
+  // moduli = 1 << (μ/ 2)
+  test_poly_matrix_conversion<2, (1 << 5)>(); // lightsaber
+  test_poly_matrix_conversion<3, (1 << 4)>(); // saber
+  test_poly_matrix_conversion<4, (1 << 3)>(); // firesaber
+
+  // moduli = 1 << EP
+  test_poly_matrix_conversion<2, (1 << 10)>(); // lightsaber
+  test_poly_matrix_conversion<3, (1 << 10)>(); // saber
+  test_poly_matrix_conversion<4, (1 << 10)>(); // firesaber
+
+  // moduli = 1 << EQ
+  test_poly_matrix_conversion<2, (1 << 13)>(); // lightsaber
+  test_poly_matrix_conversion<3, (1 << 13)>(); // saber
+  test_poly_matrix_conversion<4, (1 << 13)>(); // firesaber
 }

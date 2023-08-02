@@ -54,7 +54,7 @@ test_saber_pke()
   saber_pke::encrypt<L, EQ, EP, ET, MU>(_msg, _seedS_prm, _pkey, _ctxt);
   saber_pke::decrypt<L, EQ, EP, ET, MU>(_ctxt, _skey, _dec);
 
-  ASSERT_EQ(msg, dec);
+  EXPECT_EQ(msg, dec);
 }
 
 TEST(SaberKEM, LightSaberPublicKeyEncryption)
