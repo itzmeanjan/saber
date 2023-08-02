@@ -1,5 +1,6 @@
 #pragma once
 #include "karatsuba.hpp"
+#include "params.hpp"
 #include "utils.hpp"
 #include "zq.hpp"
 #include <array>
@@ -29,6 +30,7 @@ public:
   // Given a byte array of length log2(moduli) * 32 -bytes, this routine can be
   // used for transforming it into a polynomial, following algorithm 9 of spec.
   inline explicit poly_t(std::span<const uint8_t> bstr)
+    requires(saber_params::validate_poly_serialization_args<moduli>())
   {
     constexpr size_t lg2_moduli = saber_params::log2(moduli);
     constexpr size_t blen = (lg2_moduli * N) / 8;
@@ -238,6 +240,7 @@ public:
   // Given a polynomial, this routine can transform it into a byte string of
   // length log2(moduli) * 32, following algorithm 10 of spec.
   inline void to_bytes(std::span<uint8_t> bstr)
+    requires(saber_params::validate_poly_serialization_args<moduli>())
   {
     constexpr size_t lg2_moduli = saber_params::log2(moduli);
 

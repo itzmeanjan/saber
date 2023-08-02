@@ -1,8 +1,11 @@
 #pragma once
+#include <algorithm>
+#include <array>
 #include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <vector>
 
 // Compile-time executable checks and parameters for Saber KEM implementation.
 namespace saber_params {
@@ -35,6 +38,20 @@ is_even(T val)
   requires(std::is_unsigned_v<T>)
 {
   return !static_cast<bool>(val & 1);
+}
+
+// Given a power of 2 integer moduli, figure, in compile-time, if that's supported in
+// polynomial serialization/ deserialization routines. If not supported, it must return
+// FALSE, so that translation units can't be compiled anymore.
+template<const uint16_t moduli>
+inline constexpr bool
+validate_poly_serialization_args()
+{
+  constexpr uint16_t lg2_moduli = saber_params::log2(moduli);
+
+  std::array<uint16_t, 6> bit_widths = { 13, 10, 6, 4, 3, 1 };
+  auto elm = std::find(bit_widths.begin(), bit_widths.end(), lg2_moduli);
+  return elm != bit_widths.end();
 }
 
 // Compile-time executable check for validating template arguments passed to Saber PKE
