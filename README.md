@@ -26,7 +26,7 @@ For learning more about Saber, follow their website @ https://www.esat.kuleuven.
 
 ```bash
 $ g++ --version
-g++ (Ubuntu 12.2.0-17ubuntu1) 12.2.0
+g++ (Ubuntu 13.1.0-2ubuntu2~23.04) 13.1.0
 
 $ clang++ --version
 Ubuntu clang version 16.0.0 (1~exp5ubuntu3)
@@ -84,9 +84,9 @@ make -j $(nproc --all)
 [ RUN      ] SaberKEM.LightSaberKnownAnswerTests
 [       OK ] SaberKEM.LightSaberKnownAnswerTests (19 ms)
 [ RUN      ] SaberKEM.SaberKnownAnswerTests
-[       OK ] SaberKEM.SaberKnownAnswerTests (36 ms)
+[       OK ] SaberKEM.SaberKnownAnswerTests (37 ms)
 [ RUN      ] SaberKEM.FireSaberKnownAnswerTests
-[       OK ] SaberKEM.FireSaberKnownAnswerTests (59 ms)
+[       OK ] SaberKEM.FireSaberKnownAnswerTests (60 ms)
 [ RUN      ] SaberKEM.LightSaberPublicKeyEncryption
 [       OK ] SaberKEM.LightSaberPublicKeyEncryption (0 ms)
 [ RUN      ] SaberKEM.SaberPublicKeyEncryption
@@ -97,10 +97,10 @@ make -j $(nproc --all)
 [       OK ] SaberKEM.PolynomialMatrixConversion (0 ms)
 [ RUN      ] SaberKEM.PolynomialConversion
 [       OK ] SaberKEM.PolynomialConversion (0 ms)
-[----------] 11 tests from SaberKEM (116 ms total)
+[----------] 11 tests from SaberKEM (119 ms total)
 
 [----------] Global test environment tear-down
-[==========] 11 tests from 1 test suite ran. (116 ms total)
+[==========] 11 tests from 1 test suite ran. (119 ms total)
 [  PASSED  ] 11 tests.
 ```
 
@@ -120,55 +120,55 @@ make perf       # Must do if you have built google-benchmark library with libPFM
 ### On 12th Gen Intel(R) Core(TM) i7-1260P ( compiled with Clang-16.0 )
 
 ```bash
-2023-08-02T20:43:41+04:00
+2023-08-15T17:42:17+04:00
 Running ./benchmarks/perf.out
-Run on (16 X 1038.99 MHz CPU s)
+Run on (16 X 4709.07 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.73, 0.57, 0.31
+Load Average: 0.74, 0.60, 0.62
 ***WARNING*** There are 9 benchmarks with threads and 1 performance counters were requested. Beware counters will reflect the combined usage across all threads.
 ----------------------------------------------------------------------------------------
 Benchmark                  Time             CPU   Iterations     CYCLES items_per_second
 ----------------------------------------------------------------------------------------
-lightsaber/keygen       15.9 us         15.9 us        44209    74.161k       62.9147k/s
-lightsaber/encaps       23.3 us         23.3 us        30047   108.713k       42.9518k/s
-lightsaber/decaps       28.6 us         28.6 us        24575   133.342k       35.0179k/s
-saber/keygen            33.0 us         33.0 us        21126   154.265k       30.2664k/s
-saber/encaps            45.5 us         45.6 us        15320   212.825k       21.9538k/s
-saber/decaps            52.2 us         52.2 us        13547   241.843k       19.1717k/s
-firesaber/keygen        60.4 us         60.5 us        11621   281.552k       16.5417k/s
-firesaber/encaps        71.3 us         71.3 us         9854   332.447k       14.0283k/s
-firesaber/decaps        83.9 us         83.9 us         8374    391.38k       11.9164k/s
+lightsaber/keygen       24.4 us         24.4 us        28709   114.429k       40.9108k/s
+lightsaber/encaps       35.3 us         35.3 us        19847   164.976k       28.3529k/s
+lightsaber/decaps       37.7 us         37.7 us        18586   176.386k       26.5178k/s
+saber/keygen            50.1 us         50.1 us        10000   233.818k       19.9749k/s
+saber/encaps            64.7 us         64.7 us        10834   302.231k       15.4539k/s
+saber/decaps            67.2 us         67.2 us        10419   313.642k       14.8837k/s
+firesaber/keygen        80.7 us         80.7 us         8625   377.135k        12.394k/s
+firesaber/encaps        98.8 us         98.8 us         7084   462.232k       10.1164k/s
+firesaber/decaps         105 us          105 us         6698   489.383k       9.55764k/s
 ```
 
-### On 12th Gen Intel(R) Core(TM) i7-1260P ( compiled with GCC-12.2 )
+### On 12th Gen Intel(R) Core(TM) i7-1260P ( compiled with GCC-13.1 )
 
 ```bash
-2023-08-02T20:45:14+04:00
+2023-08-15T17:40:13+04:00
 Running ./benchmarks/perf.out
-Run on (16 X 4661.29 MHz CPU s)
+Run on (16 X 2500 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.46, 0.54, 0.32
+Load Average: 0.48, 0.54, 0.60
 ***WARNING*** There are 9 benchmarks with threads and 1 performance counters were requested. Beware counters will reflect the combined usage across all threads.
 ----------------------------------------------------------------------------------------
 Benchmark                  Time             CPU   Iterations     CYCLES items_per_second
 ----------------------------------------------------------------------------------------
-lightsaber/keygen       32.9 us         32.9 us        21197   153.732k       30.4171k/s
-lightsaber/encaps       48.5 us         48.5 us        14478   226.064k       20.6292k/s
-lightsaber/decaps       61.6 us         61.6 us        11349   288.259k       16.2315k/s
-saber/keygen            69.6 us         69.6 us        10106   324.865k       14.3671k/s
-saber/encaps            92.6 us         92.6 us         7594   431.568k       10.8002k/s
-saber/decaps             112 us          112 us         6177   521.694k       8.96309k/s
-firesaber/keygen         123 us          123 us         5709   571.835k       8.15302k/s
-firesaber/encaps         153 us          153 us         4603   711.865k       6.55279k/s
-firesaber/decaps         179 us          179 us         3922   835.373k       5.60172k/s
+lightsaber/keygen       42.7 us         42.7 us        16448   199.181k       23.4172k/s
+lightsaber/encaps       62.4 us         62.4 us        11213   291.544k       16.0302k/s
+lightsaber/decaps       79.5 us         79.5 us         8827   371.144k       12.5831k/s
+saber/keygen            90.5 us         90.5 us         7755   423.147k       11.0511k/s
+saber/encaps             120 us          120 us         5817   560.616k       8.33287k/s
+saber/decaps             146 us          146 us         4824   679.251k       6.87212k/s
+firesaber/keygen         159 us          159 us         4394   742.446k       6.29437k/s
+firesaber/encaps         198 us          198 us         3541   924.359k       5.06157k/s
+firesaber/decaps         232 us          232 us         3010   1083.93k       4.31128k/s
 ```
 
 ## Usage
