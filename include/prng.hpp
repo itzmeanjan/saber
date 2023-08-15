@@ -27,41 +27,39 @@ namespace prng {
 struct prng_t
 {
 private:
-  shake128::shake128 state;
+  shake128::shake128_t state;
 
 public:
   // Default one, exercise caution if considering to use it for sampling randomness.
   inline prng_t()
   {
-    uint8_t seed[32];
+    std::array<uint8_t, 32> seed{};
+    auto _seed = std::span(seed);
 
     // Read more @
     // https://en.cppreference.com/w/cpp/numeric/random/random_device/random_device
     std::random_device rd{};
 
     size_t off = 0;
-    while (off < sizeof(seed)) {
+    while (off < _seed.size()) {
       const uint32_t v = rd();
-      std::memcpy(seed + off, &v, sizeof(v));
+      std::memcpy(_seed.subspan(off, sizeof(v)).data(), &v, sizeof(v));
 
       off += sizeof(v);
     }
 
-    state.absorb(seed, sizeof(seed));
+    state.absorb(_seed);
     state.finalize();
   }
 
   // Preferred alternative, consider passing >= 32 -bytes random seed.
   inline explicit prng_t(std::span<const uint8_t> seed)
   {
-    state.absorb(seed.data(), seed.size());
+    state.absorb(seed);
     state.finalize();
   }
 
-  inline void read(std::span<uint8_t> bytes)
-  {
-    state.squeeze(bytes.data(), bytes.size());
-  }
+  inline void read(std::span<uint8_t> bytes) { state.squeeze(bytes); }
 };
 
 }

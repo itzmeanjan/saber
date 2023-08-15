@@ -32,10 +32,10 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
   std::array<uint8_t, seedBytes> hashedSeedA{};
 
   // step 2
-  shake128::shake128 hasher;
-  hasher.absorb(seedA.data(), seedA.size());
+  shake128::shake128_t hasher;
+  hasher.absorb(seedA);
   hasher.finalize();
-  hasher.squeeze(hashedSeedA.data(), hashedSeedA.size());
+  hasher.squeeze(hashedSeedA);
   hasher.reset();
 
   // step 4, 5

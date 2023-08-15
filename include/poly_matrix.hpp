@@ -194,10 +194,10 @@ public:
     std::array<uint8_t, buf_blen> buf{};
     auto bufs = std::span<uint8_t, buf_blen>(buf);
 
-    shake128::shake128 hasher;
-    hasher.absorb(seed.data(), seed.size());
+    shake128::shake128_t hasher;
+    hasher.absorb(seed);
     hasher.finalize();
-    hasher.squeeze(buf.data(), buf.size());
+    hasher.squeeze(bufs);
     hasher.reset();
 
     for (size_t i = 0; i < rows * cols; i++) {
@@ -225,10 +225,10 @@ public:
     std::array<uint8_t, buf_blen> buf{};
     auto _buf = std::span<uint8_t, buf_blen>(buf);
 
-    shake128::shake128 hasher;
-    hasher.absorb(seed.data(), seed.size());
+    shake128::shake128_t hasher;
+    hasher.absorb(seed);
     hasher.finalize();
-    hasher.squeeze(_buf.data(), _buf.size());
+    hasher.squeeze(_buf);
     hasher.reset();
 
     for (size_t i = 0; i < rows; i++) {
