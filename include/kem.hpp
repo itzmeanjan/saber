@@ -52,10 +52,10 @@ keygen(
   std::memcpy(sk_pk.data(), pkey.data(), pkey.size());
 
   // step 2
-  sha3_256::sha3_256 hasher;
-  hasher.absorb(sk_pk.data(), sk_pk.size());
+  sha3_256::sha3_256_t hasher;
+  hasher.absorb(sk_pk);
   hasher.finalize();
-  hasher.digest(sk_hpk.data()); // step 4 ( partial )
+  hasher.digest(sk_hpk); // step 4 ( partial )
   hasher.reset();
 
   // step 4 ( partial )
@@ -86,24 +86,24 @@ encaps(std::span<const uint8_t, keyBytes> m, // step 1
   std::array<uint8_t, sha3_256::DIGEST_LEN> r_prm;
 
   // step 2
-  sha3_256::sha3_256 h256;
-  h256.absorb(m.data(), m.size());
+  sha3_256::sha3_256_t h256;
+  h256.absorb(m);
   h256.finalize();
-  h256.digest(hashed_m.data());
+  h256.digest(hashed_m);
   h256.reset();
 
   // step 3
-  h256.absorb(pkey.data(), pkey.size());
+  h256.absorb(pkey);
   h256.finalize();
-  h256.digest(hashed_pk.data());
+  h256.digest(hashed_pk);
   h256.reset();
 
   // step 4, 5
-  sha3_512::sha3_512 h512;
-  h512.absorb(hashed_m.data(), hashed_m.size());
-  h512.absorb(hashed_pk.data(), hashed_pk.size());
+  sha3_512::sha3_512_t h512;
+  h512.absorb(hashed_m);
+  h512.absorb(hashed_pk);
   h512.finalize();
-  h512.digest(rk.data());
+  h512.digest(rk);
   h512.reset();
 
   // step 6
@@ -116,16 +116,16 @@ encaps(std::span<const uint8_t, keyBytes> m, // step 1
   saber_pke::encrypt<L, EQ, EP, ET, MU>(_hm, _r, pkey, ctxt);
 
   // step 8
-  h256.absorb(ctxt.data(), ctxt.size());
+  h256.absorb(ctxt);
   h256.finalize();
-  h256.digest(r_prm.data());
+  h256.digest(r_prm);
   h256.reset();
 
   // step 9, 10
-  h256.absorb(k.data(), k.size());
-  h256.absorb(r_prm.data(), r_prm.size());
+  h256.absorb(k);
+  h256.absorb(r_prm);
   h256.finalize();
-  h256.digest(seskey.data());
+  h256.digest(seskey);
   h256.reset();
 }
 
@@ -169,11 +169,11 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
   saber_pke::decrypt<L, EQ, EP, ET, MU>(ctxt, sk, m);
 
   // step 3, 4
-  sha3_512::sha3_512 h512;
-  h512.absorb(m.data(), m.size());
-  h512.absorb(hash_pk.data(), hash_pk.size());
+  sha3_512::sha3_512_t h512;
+  h512.absorb(m);
+  h512.absorb(hash_pk);
   h512.finalize();
-  h512.digest(rk.data());
+  h512.digest(rk);
   h512.reset();
 
   // step 5
@@ -191,17 +191,17 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
   saber_utils::ct_sel_bytes<temp.size()>(c, temp, k, z);
 
   // step 8
-  sha3_256::sha3_256 h256;
-  h256.absorb(ctxt.data(), ctxt.size());
+  sha3_256::sha3_256_t h256;
+  h256.absorb(ctxt);
   h256.finalize();
-  h256.digest(r_prm.data());
+  h256.digest(r_prm);
   h256.reset();
 
   // step 13
-  h256.absorb(temp.data(), temp.size());
-  h256.absorb(r_prm.data(), r_prm.size());
+  h256.absorb(temp);
+  h256.absorb(r_prm);
   h256.finalize();
-  h256.digest(seskey.data());
+  h256.digest(seskey);
   h256.reset();
 }
 
