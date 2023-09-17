@@ -61,4 +61,4 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 format: $(SABER_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES)
-	clang-format -i --style=Mozilla $^
+	clang-format -i $^
