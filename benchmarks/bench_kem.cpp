@@ -5,13 +5,13 @@
 #include <cassert>
 
 // Benchmark Saber KEM key generation algorithm for various suggested parameters.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t MU,
+         size_t seedBytes,
+         size_t noiseBytes,
+         size_t keyBytes>
 void
 keygen(benchmark::State& state)
 {
@@ -52,14 +52,14 @@ keygen(benchmark::State& state)
 }
 
 // Benchmark Saber KEM encapsulation algorithm for various suggested parameters.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t ET,
+         size_t MU,
+         size_t seedBytes,
+         size_t noiseBytes,
+         size_t keyBytes>
 void
 encaps(benchmark::State& state)
 {
@@ -109,14 +109,14 @@ encaps(benchmark::State& state)
 }
 
 // Benchmark Saber KEM decapsulation algorithm for various suggested parameters.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t ET,
+         size_t MU,
+         size_t seedBytes,
+         size_t noiseBytes,
+         size_t keyBytes>
 void
 decaps(benchmark::State& state)
 {

@@ -9,7 +9,7 @@ namespace mat {
 
 // Wrapper type encapsulating matrix/ vector operations s.t. its elements are
 // polynomials in Rq = Zq[X]/(X^N + 1), N = 256.
-template<const size_t rows, const size_t cols, const uint16_t moduli>
+template<size_t rows, size_t cols, uint16_t moduli>
 struct poly_matrix_t
 {
 private:
@@ -117,7 +117,7 @@ public:
   }
 
   // Change moduli of each element of polynomial matrix to a different value.
-  template<const uint16_t new_moduli>
+  template<uint16_t new_moduli>
   inline constexpr poly_matrix_t<rows, cols, new_moduli> mod() const
     requires(moduli != new_moduli)
   {
@@ -144,7 +144,7 @@ public:
   // Given a matrix M ∈ Rq^(l×l) and vector v ∈ Rq^(l×1), this routine performs
   // a matrix vector multiplication, returning a vector mv ∈ Rq^(l×1), following
   // algorithm 13 of spec.
-  template<const size_t rhs_rows>
+  template<size_t rhs_rows>
   inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(
     const poly_matrix_t<rhs_rows, 1, moduli>& vec)
     requires((rows == cols) && (cols == rhs_rows))
@@ -180,7 +180,7 @@ public:
   // Given random byte string ( seed ) of length `seedBytes` as input,
   // this routine generates a matrix A ∈ Rq^(l×l), following algorithm 15 of
   // spec.
-  template<const size_t seedBytes>
+  template<size_t seedBytes>
   inline static poly_matrix_t<rows, cols, moduli> gen_matrix(
     std::span<const uint8_t, seedBytes> seed)
     requires(rows == cols)
@@ -212,7 +212,7 @@ public:
   // Given random byte string ( seed ) of length `seedBytes` as input, this routine
   // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from a centered
   // binomial distribution β_μ, following algorithm 16 of Saber spec.
-  template<const size_t seedBytes, const size_t mu>
+  template<size_t seedBytes, size_t mu>
   inline static poly_matrix_t<rows, 1, moduli> gen_secret(
     std::span<const uint8_t, seedBytes> seed)
     requires((cols == 1) && saber_params::is_even(mu))

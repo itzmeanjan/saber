@@ -13,13 +13,13 @@ namespace saber_kem {
 // algorithm ) and keyBytes `z` ( random sampled bytes, used for randomizing Saber KEM
 // secret key ), this routine can be used for generating a Saber KEM public/ private
 // keypair, following algorithm 20 in section 8.5.1 of Saber spec.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t MU,
+         size_t seedBytes,
+         size_t noiseBytes,
+         size_t keyBytes>
 inline void
 keygen(
   std::span<const uint8_t, seedBytes> seedA,
@@ -65,13 +65,13 @@ keygen(
 // Given keyBytes input `m` ( random sampled ) and Saber KEM public key, this routine
 // can be used for generating a session key ( of 32 -bytes ) and Saber KEM cipher text.
 // This is an implementation of algorithm 21 in section 8.5.2 of Saber spec.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t ET,
+         size_t MU,
+         size_t seedBytes,
+         size_t keyBytes>
 inline void
 encaps(std::span<const uint8_t, keyBytes> m, // step 1
        std::span<const uint8_t, saber_utils::kem_pklen<L, EP, seedBytes>()> pkey,
@@ -132,13 +132,13 @@ encaps(std::span<const uint8_t, keyBytes> m, // step 1
 // Given Saber KEM cipher text and Saber KEM secret key, this routine can be used for
 // decapsulating the received cipher text, extracting a shared secret key of 32 -bytes.
 // This is an implementation of algorithm 22 in section 8.5.3 of Saber spec.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t ET,
+         size_t MU,
+         size_t seedBytes,
+         size_t keyBytes>
 inline void
 decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
        std::span<const uint8_t,

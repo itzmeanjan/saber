@@ -10,13 +10,13 @@
 // - encrypting a 32 -bytes message using public key
 // - decrypting the cipher text using secret key
 // - asserting equality of original message and decrypted one
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t ET,
+         size_t MU,
+         size_t seedBytes,
+         size_t noiseBytes>
 void
 test_saber_pke()
 {

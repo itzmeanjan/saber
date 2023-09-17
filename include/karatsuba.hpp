@@ -10,7 +10,7 @@ namespace karatsuba {
 // routine multiplies them using Karatsuba algorithm, following
 // https://github.com/itzmeanjan/falcon/blob/cce934dcd092c95808c0bdaeb034312ee7754d7e/include/karatsuba.hpp,
 // computing resulting polynomial of degree 2*N - 1
-template<const size_t N>
+template<size_t N>
 static inline constexpr std::array<zq::zq_t, 2 * N>
 karatsuba(const std::array<zq::zq_t, N>& polya, const std::array<zq::zq_t, N>& polyb)
   requires(saber_params::is_power_of_2(N))
@@ -61,7 +61,7 @@ karatsuba(const std::array<zq::zq_t, N>& polya, const std::array<zq::zq_t, N>& p
 // routine first multiplies them using Karatsuba algorithm and then reduces it
 // modulo  (x ** N + 1), following
 // https://github.com/itzmeanjan/falcon/blob/cce934dcd092c95808c0bdaeb034312ee7754d7e/include/karatsuba.hpp
-template<const size_t N>
+template<size_t N>
 static inline constexpr std::array<zq::zq_t, N>
 karamul(const std::array<zq::zq_t, N>& polya, const std::array<zq::zq_t, N>& polyb)
 {

@@ -69,7 +69,7 @@ from_le_bytes(std::span<const uint8_t> bytes)
 }
 
 // Compile-time compute byte length of public key encryption's public key.
-template<const size_t L, const size_t EP, const size_t seedBytes>
+template<size_t L, size_t EP, size_t seedBytes>
 inline constexpr size_t
 pke_pklen()
 {
@@ -77,7 +77,7 @@ pke_pklen()
 }
 
 // Compile-time compute byte length of public key encryption's secret key.
-template<const size_t L, const size_t EQ>
+template<size_t L, size_t EQ>
 inline constexpr size_t
 pke_sklen()
 {
@@ -85,7 +85,7 @@ pke_sklen()
 }
 
 // Compile-time compute byte length of public key encryption's cipher text.
-template<const size_t L, const size_t EP, const size_t ET>
+template<size_t L, size_t EP, size_t ET>
 inline constexpr size_t
 pke_ctlen()
   requires(EP > ET)
@@ -94,7 +94,7 @@ pke_ctlen()
 }
 
 // Compile-time compute byte length of key encapsulation mechanism's public key.
-template<const size_t L, const size_t EP, const size_t seedBytes>
+template<size_t L, size_t EP, size_t seedBytes>
 inline constexpr size_t
 kem_pklen()
 {
@@ -102,11 +102,7 @@ kem_pklen()
 }
 
 // Compile-time compute byte length of key encapsulation mechanism's secret key.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t seedBytes,
-         const size_t keyBytes>
+template<size_t L, size_t EQ, size_t EP, size_t seedBytes, size_t keyBytes>
 inline constexpr size_t
 kem_sklen()
 {
@@ -116,7 +112,7 @@ kem_sklen()
 }
 
 // Compile-time compute byte length of key encapsulation mechanism's cipher text.
-template<const size_t L, const size_t EP, const size_t ET>
+template<size_t L, size_t EP, size_t ET>
 inline constexpr size_t
 kem_ctlen()
 {
@@ -126,7 +122,7 @@ kem_ctlen()
 // Compare equality of two byte arrays of equal length in constant-time, returning TRUTH
 // value ( 0xffffffff ) in case they are same, otherwise it returns FALSE value (
 // 0x00000000 ).
-template<const size_t L>
+template<size_t L>
 inline constexpr uint32_t
 ct_eq_bytes(std::span<const uint8_t, L> bytesa, std::span<const uint8_t, L> bytesb)
 {
@@ -142,7 +138,7 @@ ct_eq_bytes(std::span<const uint8_t, L> bytesa, std::span<const uint8_t, L> byte
 // If flag holds FALSE value ( 0x00000000 ), bytes from `bytesb` are copied to `dst`.
 //
 // If flag holds any other value, it's undefined behaviour.
-template<const size_t L>
+template<size_t L>
 inline constexpr void
 ct_sel_bytes(const uint32_t flag,
              std::span<uint8_t, L> dst,

@@ -8,7 +8,7 @@
 // degree-255 polynomials.
 //
 // `moduli` must be a power of 2 value.
-template<const size_t rows, const uint16_t moduli>
+template<size_t rows, uint16_t moduli>
 void
 test_poly_matrix_conversion()
 {
