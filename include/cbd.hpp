@@ -13,7 +13,7 @@ namespace saber_utils {
 // https://github.com/KULeuven-COSIC/SABER/blob/f7f39e4db2f3e22a21e1dd635e0601caae2b4510/Reference_Implementation_KEM/cbd.c.
 // Similar sort of sampling routine can also be found in
 // https://github.com/itzmeanjan/kyber/blob/8cbb09472dc5f7e5ae8bc52cbcbf6344f637d4fe/include/sampling.hpp#L88-L152.
-template<const uint16_t moduli, const size_t mu>
+template<uint16_t moduli, size_t mu>
 inline poly::poly_t<moduli>
 cbd(std::span<const uint8_t> bytes)
   requires((mu == 10) || (mu == 8) || (mu == 6))

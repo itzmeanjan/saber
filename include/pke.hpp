@@ -12,12 +12,7 @@ namespace saber_pke {
 // -bytes `seedS` ( used for generating secret vector s ), this routine can be used for
 // generating a Saber PKE public, private keypair, following algorithm 17 in
 // section 8.4.1 of Saber spec.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes>
+template<size_t L, size_t EQ, size_t EP, size_t MU, size_t seedBytes, size_t noiseBytes>
 inline void
 keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
        std::span<const uint8_t, noiseBytes> seedS, // step 3
@@ -62,12 +57,7 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
 // this routine can be used for encrypting fixed length message using Saber public key
 // encryption algorithm, computing a cipher text. This routine is an implementation of
 // algorithm 18 in section 8.4.2 of Saber spec.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes>
 inline void
 encrypt(std::span<const uint8_t, 32> msg,
         std::span<const uint8_t, seedBytes> seedS,
@@ -122,11 +112,7 @@ encrypt(std::span<const uint8_t, 32> msg,
 // decrypting the cipher text to 32 -bytes plain text message, which was encrypted using
 // corresponding ( associated with this secret key ) Saber PKE public key. This routine
 // is an implementation of algorithm 19 in section 8.4.3 of Saber spec.
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU>
 inline void
 decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt,
         std::span<const uint8_t, saber_utils::pke_sklen<L, EQ>()> skey,

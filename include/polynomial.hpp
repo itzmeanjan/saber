@@ -12,7 +12,7 @@ namespace poly {
 constexpr size_t N = 256;
 
 // Wrapper type encapsulating operations over Rq = Zq[X]/(X^N + 1), N = 256
-template<const uint16_t moduli>
+template<uint16_t moduli>
   requires(saber_params::is_power_of_2(moduli))
 struct poly_t
 {
@@ -252,7 +252,7 @@ public:
   }
 
   // Change moduli of polynomial coefficients to different value.
-  template<const uint16_t new_moduli>
+  template<uint16_t new_moduli>
   inline constexpr poly_t<new_moduli> mod() const
     requires(moduli != new_moduli)
   {

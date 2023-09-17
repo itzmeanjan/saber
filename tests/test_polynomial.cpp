@@ -8,7 +8,7 @@
 // polynomials.
 //
 // `moduli` must be a power of 2 value.
-template<const uint16_t moduli>
+template<uint16_t moduli>
 void
 test_poly_conversion()
 {

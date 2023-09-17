@@ -5,7 +5,7 @@
 namespace saber_consts {
 
 // Compile-time compute constant polynomial h1 ∈ Rq, following section 2.3 of spec.
-template<const uint16_t moduli, const uint16_t εq, const uint16_t εp>
+template<uint16_t moduli, uint16_t εq, uint16_t εp>
 inline constexpr poly::poly_t<moduli>
 compute_poly_h1()
   requires((εq > εp) && (moduli == (1u << εq)))
@@ -22,7 +22,7 @@ compute_poly_h1()
 }
 
 // Compile-time compute constant vector h ∈ Rq^(lx1), following section 2.3 of spec.
-template<const size_t L, const uint16_t moduli, const uint16_t εq, const uint16_t εp>
+template<size_t L, uint16_t moduli, uint16_t εq, uint16_t εp>
 inline constexpr mat::poly_matrix_t<L, 1, moduli>
 compute_polyvec_h()
 {
@@ -37,7 +37,7 @@ compute_polyvec_h()
 }
 
 // Compile-time compute constant polynomial h2 ∈ Rq, following section 2.3 of spec.
-template<const uint16_t moduli, const uint16_t εq, const uint16_t εp, const uint16_t εt>
+template<uint16_t moduli, uint16_t εq, uint16_t εp, uint16_t εt>
 inline constexpr poly::poly_t<moduli>
 compute_poly_h2()
   requires(((εq > εp) && (εp > εt)) && (moduli == (1u << εq)))

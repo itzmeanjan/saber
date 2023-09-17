@@ -15,14 +15,14 @@
 // - encapsulating message, generating cipher text and 32 -bytes shared secret
 // - decapsulating cipher text, generating 32 -bytes shared secret
 // - asserting equality of shared secret obtained by both parties
-template<const size_t L,
-         const size_t EQ,
-         const size_t EP,
-         const size_t ET,
-         const size_t MU,
-         const size_t seedBytes,
-         const size_t noiseBytes,
-         const size_t keyBytes>
+template<size_t L,
+         size_t EQ,
+         size_t EP,
+         size_t ET,
+         size_t MU,
+         size_t seedBytes,
+         size_t noiseBytes,
+         size_t keyBytes>
 void
 test_saber_kem()
 {

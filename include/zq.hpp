@@ -39,7 +39,7 @@ public:
   inline constexpr zq_t operator>>(const size_t off) const { return this->val >> off; }
 
   // Reduction by integer moduli q s.t. q = power of 2.
-  template<const uint16_t moduli>
+  template<uint16_t moduli>
   inline constexpr zq_t reduce_by() const
     requires(saber_params::is_power_of_2(moduli))
   {
@@ -51,7 +51,7 @@ public:
 
   // Returns hamming weight (i.e. number of non-zero bits present) of bit string
   // representation of Zq element.
-  template<const size_t moduli>
+  template<size_t moduli>
   inline constexpr size_t hamming_weight() const
     requires(saber_params::is_power_of_2(moduli))
   {

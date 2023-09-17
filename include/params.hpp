@@ -43,7 +43,7 @@ is_even(T val)
 // Given a power of 2 integer moduli, figure, in compile-time, if that's supported in
 // polynomial serialization/ deserialization routines. If not supported, it must return
 // FALSE, so that translation units can't be compiled anymore.
-template<const uint16_t moduli>
+template<uint16_t moduli>
 inline constexpr bool
 validate_poly_serialization_args()
 {
