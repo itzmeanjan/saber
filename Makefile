@@ -2,47 +2,63 @@ CXX = g++
 CXX_FLAGS = -std=c++20
 WARN_FLAGS = -Wall -Wextra -pedantic
 OPT_FLAGS = -O3 -march=native -mtune=native
+LINK_FLAGS = -flto
 I_FLAGS = -I ./include
 DEP_IFLAGS = -I ./sha3/include -I ./subtle/include
 
+SRC_DIR = include
+SABER_SOURCES := $(wildcard $(SRC_DIR)/*.hpp)
+BUILD_DIR = build
+
+TEST_DIR = tests
+TEST_SOURCES := $(wildcard $(TEST_DIR)/*.cpp)
+TEST_OBJECTS := $(addprefix $(BUILD_DIR)/, $(notdir $(patsubst %.cpp,%.o,$(TEST_SOURCES))))
+TEST_LINK_FLAGS = -lgtest -lgtest_main
+TEST_BINARY = $(BUILD_DIR)/test.out
+
+BENCHMARK_DIR = benchmarks
+BENCHMARK_SOURCES := $(wildcard $(BENCHMARK_DIR)/*.cpp)
+BENCHMARK_OBJECTS := $(addprefix $(BUILD_DIR)/, $(notdir $(patsubst %.cpp,%.o,$(BENCHMARK_SOURCES))))
+BENCHMARK_LINK_FLAGS = -lbenchmark -lbenchmark_main -lpthread
+BENCHMARK_BINARY = $(BUILD_DIR)/bench.out
+PERF_LINK_FLAGS = -lbenchmark -lbenchmark_main -lpfm -lpthread
+PERF_BINARY = $(BUILD_DIR)/perf.out
+
 all: test
 
-tests/test_polynomial.o: tests/test_polynomial.cpp include/*.hpp
+$(BUILD_DIR):
+	mkdir -p $@
+
+$(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp $(BUILD_DIR)
 	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
 
-tests/test_poly_matrix.o: tests/test_poly_matrix.cpp include/*.hpp
-	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
+$(TEST_BINARY): $(TEST_OBJECTS)
+	$(CXX) $(OPT_FLAGS) $(LINK_FLAGS) $^ $(TEST_LINK_FLAGS) -o $@
 
-tests/test_pke.o: tests/test_pke.cpp include/*.hpp
-	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
-
-tests/test_kem.o: tests/test_kem.cpp include/*.hpp
-	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
-
-tests/a.out: tests/test_polynomial.o tests/test_poly_matrix.o tests/test_pke.o tests/test_kem.o
-	$(CXX) $(OPT_FLAGS) $^ -lgtest -lgtest_main -o $@
-
-test: tests/a.out
+test: $(TEST_BINARY)
 	./$<
 
-benchmarks/bench.out: benchmarks/bench_kem.cpp include/*.hpp
-	# If your google-benchmark library is not built with libPFM support.
-	# More @ https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7
-	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) $< -lbenchmark -lpthread -lbenchmark_main -o $@
+$(BUILD_DIR)/%.o: $(BENCHMARK_DIR)/%.cpp $(BUILD_DIR)
+	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
 
-benchmarks/perf.out: benchmarks/bench_kem.cpp include/*.hpp
-	# Must use this if your google-benchmark library is built with libPFM support.
-	# More @ https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7
-	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) $< -lbenchmark -lpthread -lpfm -lbenchmark_main -o $@
+$(BENCHMARK_BINARY): $(BENCHMARK_OBJECTS)
+	$(CXX) $(OPT_FLAGS) $(LINK_FLAGS) $^ $(BENCHMARK_LINK_FLAGS) -o $@
 
-benchmark: benchmarks/bench.out
-	./$< --benchmark_min_warmup_time=.5 --benchmark_time_unit=us --benchmark_counters_tabular=true
+benchmark: $(BENCHMARK_BINARY)
+	# Must *not* build google-benchmark with libPFM
+	./$< --benchmark_time_unit=us --benchmark_min_warmup_time=.5 --benchmark_enable_random_interleaving=true --benchmark_repetitions=8 --benchmark_min_time=0.1s --benchmark_display_aggregates_only=true --benchmark_counters_tabular=true
 
-perf: benchmarks/perf.out
-	./$< --benchmark_min_warmup_time=.5 --benchmark_time_unit=us --benchmark_counters_tabular=true --benchmark_perf_counters=CYCLES
+$(PERF_BINARY): $(BENCHMARK_OBJECTS)
+	$(CXX) $(OPT_FLAGS) $(LINK_FLAGS) $^ $(PERF_LINK_FLAGS) -o $@
+
+perf: $(PERF_BINARY)
+	# Must build google-benchmark with libPFM, follow https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7
+	./$< --benchmark_time_unit=us --benchmark_min_warmup_time=.5 --benchmark_enable_random_interleaving=true --benchmark_repetitions=8 --benchmark_min_time=0.1s --benchmark_display_aggregates_only=true --benchmark_counters_tabular=true --benchmark_perf_counters=CYCLES
+
+.PHONY: format clean
 
 clean:
-	find . -name '*.out' -o -name '*.o' -o -name '*.so' -o -name '*.gch' | xargs rm -rf
+	rm -rf $(BUILD_DIR)
 
-format:
-	find . -maxdepth 2 -name '*.cpp' -o -name '*.hpp' | xargs clang-format -i
+format: $(SABER_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES)
+	clang-format -i --style=Mozilla $^
