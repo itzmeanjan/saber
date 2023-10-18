@@ -82,8 +82,10 @@ validate_pke_keygen_args(const size_t L,
           (seedBytes == 32) && (noiseBytes == 32)) || // Saber
          (uniform_sampling && (L == 3) && (EQ == 12) && (EP == 10) && (MU == 2) &&
           (seedBytes == 32) && (noiseBytes == 32)) || // uSaber
-         ((L == 4) && (EQ == 13) && (EP == 10) && (MU == 6) && (seedBytes == 32) &&
-          (noiseBytes == 32)); // FireSaber
+         (!uniform_sampling && (L == 4) && (EQ == 13) && (EP == 10) && (MU == 6) &&
+          (seedBytes == 32) && (noiseBytes == 32)) || // FireSaber
+         (uniform_sampling && (L == 4) && (EQ == 12) && (EP == 10) && (MU == 2) &&
+          (seedBytes == 32) && (noiseBytes == 32)); // uFireSaber
 }
 
 // Compile-time executable check for validating template arguments passed to Saber PKE
@@ -105,8 +107,10 @@ validate_pke_encrypt_args(const size_t L,
           (MU == 8) && (seedBytes == 32)) || // Saber
          (uniform_sampling && (L == 3) && (EQ == 12) && (EP == 10) && (ET == 4) &&
           (MU == 2) && (seedBytes == 32)) || // uSaber
-         ((L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) && (MU == 6) &&
-          (seedBytes == 32)); // FireSaber
+         (!uniform_sampling && (L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) &&
+          (MU == 6) && (seedBytes == 32)) || // FireSaber
+         (uniform_sampling && (L == 4) && (EQ == 12) && (EP == 10) && (ET == 6) &&
+          (MU == 2) && (seedBytes == 32)); // uFireSaber
 }
 
 // Compile-time executable check for validating template arguments passed to Saber PKE
@@ -126,8 +130,11 @@ validate_pke_decrypt_args(const size_t L,
          (!uniform_sampling && (L == 3) && (EQ == 13) && (EP == 10) && (ET == 4) &&
           (MU == 8)) || // Saber
          (uniform_sampling && (L == 3) && (EQ == 12) && (EP == 10) && (ET == 4) &&
-          (MU == 2)) ||                                                    // uSaber
-         ((L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) && (MU == 6)); // FireSaber
+          (MU == 2)) || // uSaber
+         (!uniform_sampling && (L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) &&
+          (MU == 6)) || // FireSaber
+         (uniform_sampling && (L == 4) && (EQ == 12) && (EP == 10) && (ET == 6) &&
+          (MU == 2)); // uFireSaber
 }
 
 // Compile-time executable check for validating template arguments passed to Saber KEM
@@ -150,8 +157,10 @@ validate_kem_keygen_args(const size_t L,
           (seedBytes == 32) && (noiseBytes == 32) && (keyBytes == 32)) || // Saber
          (uniform_sampling && (L == 3) && (EQ == 12) && (EP == 10) && (MU == 2) &&
           (seedBytes == 32) && (noiseBytes == 32) && (keyBytes == 32)) || // uSaber
-         ((L == 4) && (EQ == 13) && (EP == 10) && (MU == 6) && (seedBytes == 32) &&
-          (noiseBytes == 32) && (keyBytes == 32)); // FireSaber
+         (!uniform_sampling && (L == 4) && (EQ == 13) && (EP == 10) && (MU == 6) &&
+          (seedBytes == 32) && (noiseBytes == 32) && (keyBytes == 32)) || // FireSaber
+         (uniform_sampling && (L == 4) && (EQ == 12) && (EP == 10) && (MU == 2) &&
+          (seedBytes == 32) && (noiseBytes == 32) && (keyBytes == 32)); // uFireSaber
 }
 
 // Compile-time executable check for validating template arguments passed to Saber KEM
@@ -174,8 +183,10 @@ validate_kem_encaps_args(const size_t L,
           (MU == 8) && (seedBytes == 32) && (keyBytes == 32)) || // Saber
          (uniform_sampling && (L == 3) && (EQ == 12) && (EP == 10) && (ET == 4) &&
           (MU == 2) && (seedBytes == 32) && (keyBytes == 32)) || // uSaber
-         ((L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) && (MU == 6) &&
-          (seedBytes == 32) && (keyBytes == 32)); // FireSaber
+         (!uniform_sampling && (L == 4) && (EQ == 13) && (EP == 10) && (ET == 6) &&
+          (MU == 6) && (seedBytes == 32) && (keyBytes == 32)) || // FireSaber
+         (uniform_sampling && (L == 4) && (EQ == 12) && (EP == 10) && (ET == 6) &&
+          (MU == 2) && (seedBytes == 32) && (keyBytes == 32)); // uFireSaber
 }
 
 // Compile-time executable check for validating template arguments passed to Saber KEM
