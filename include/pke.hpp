@@ -35,7 +35,8 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
 
   // step 4, 5
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(hashedSeedA);
-  auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<noiseBytes, MU>(seedS);
+  auto s =
+    mat::poly_matrix_t<L, 1, Q>::template gen_secret<false, noiseBytes, MU>(seedS);
 
   // step 6, 7, 8
   auto A_T = A.transpose();
@@ -78,7 +79,8 @@ encrypt(std::span<const uint8_t, 32> msg,
 
   // step 2, 3
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(seedA);
-  auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedBytes, MU>(seedS);
+  auto s_prm =
+    mat::poly_matrix_t<L, 1, Q>::template gen_secret<false, seedBytes, MU>(seedS);
 
   // step 4, 5, 6
   auto b_prm = A.template mat_vec_mul<L>(s_prm) + h;

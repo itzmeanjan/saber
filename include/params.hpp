@@ -54,6 +54,15 @@ validate_poly_serialization_args()
   return elm != bit_widths.end();
 }
 
+inline constexpr bool
+validate_gen_secret_args(const bool uniform_sampling, const size_t mu)
+{
+  return is_even(mu) &&                      // μ must be even
+         ((uniform_sampling && (mu == 2)) || // μ must be 2, for uniform dist. sampling
+          (!uniform_sampling && (mu != 2)) // μ mostly != 2, for binomial dist. sampling
+         );
+}
+
 // Compile-time executable check for validating template arguments passed to Saber PKE
 // key generation routine.
 inline constexpr bool

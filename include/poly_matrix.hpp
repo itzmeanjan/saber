@@ -1,7 +1,7 @@
 #pragma once
-#include "cbd.hpp"
 #include "params.hpp"
 #include "polynomial.hpp"
+#include "sampling.hpp"
 #include "shake128.hpp"
 
 // Operations defined over matrix/ vector of polynomials.
@@ -212,10 +212,11 @@ public:
   // Given random byte string ( seed ) of length `seedBytes` as input, this routine
   // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from a centered
   // binomial distribution β_μ, following algorithm 16 of Saber spec.
-  template<size_t seedBytes, size_t mu>
+  template<bool uniform_sampling, size_t seedBytes, size_t mu>
   inline static poly_matrix_t<rows, 1, moduli> gen_secret(
     std::span<const uint8_t, seedBytes> seed)
-    requires((cols == 1) && saber_params::is_even(mu))
+    requires((cols == 1) &&
+             saber_params::validate_gen_secret_args(uniform_sampling, mu))
   {
     constexpr size_t poly_blen = (poly::N * mu) / 8;
     constexpr size_t buf_blen = rows * poly_blen;
@@ -231,9 +232,17 @@ public:
     hasher.squeeze(_buf);
     hasher.reset();
 
+    using poly_t_ = std::span<const uint8_t, poly_blen>;
+
     for (size_t i = 0; i < rows; i++) {
       const size_t off = i * poly_blen;
-      vec[i] = saber_utils::cbd<moduli, mu>(_buf.subspan(off, poly_blen));
+      auto __buf = poly_t_(_buf.subspan(off, poly_blen));
+
+      if constexpr (uniform_sampling) {
+        vec[i] = saber_utils::uniform_sample<moduli>(__buf);
+      } else {
+        vec[i] = saber_utils::cbd<moduli, mu>(__buf);
+      }
     }
 
     return vec;
