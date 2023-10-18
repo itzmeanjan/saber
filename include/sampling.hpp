@@ -5,9 +5,41 @@
 // Utility functions for Saber KEM
 namespace saber_utils {
 
+// Centered Uniform Distribution, which is used for deterministically sampling a
+// degree-255 polynomial from output of a pseudo-random funciton (PRF). This function is
+// used for generating secret vector `s` from SHAKE128 output of seed value `seedS`, for
+// uSaber variants.
+//
+// See section A.2 of Saber specification.
+//
+// While working on this implementation, I collected some inspiration from
+// https://github.com/KULeuven-COSIC/SABER/blob/f7f39e4db2f3e22a21e1dd635e0601caae2b4510/Variants/uSaber-90s/ref/poly.c#L52-L82.
+template<uint16_t moduli>
+inline poly::poly_t<moduli>
+uniform_sample(std::span<const uint8_t, (poly::N * 2) / 8> bytes)
+{
+  poly::poly_t<moduli> res;
+
+  size_t boff = 0;
+  size_t coff = 0;
+
+  while (boff < bytes.size()) {
+    res[coff + 0] = static_cast<uint16_t>((((bytes[boff] >> 0) & 0x03) ^ 2) - 2);
+    res[coff + 1] = static_cast<uint16_t>((((bytes[boff] >> 2) & 0x03) ^ 2) - 2);
+    res[coff + 2] = static_cast<uint16_t>((((bytes[boff] >> 4) & 0x03) ^ 2) - 2);
+    res[coff + 3] = static_cast<uint16_t>((((bytes[boff] >> 6) & 0x03) ^ 2) - 2);
+
+    boff += 1;
+    coff += 4;
+  }
+
+  return res;
+}
+
 // Centered Binomial Distribution, which is used for deterministically sampling a
 // degree-255 polynomial from output of a pseudo-random function (PRF). This function is
-// used for generating secret vector `s` from SHAKE128 output of seed value `seedS`.
+// used for generating secret vector `s` from SHAKE128 output of seed value `seedS`, for
+// standard Saber variants.
 //
 // While implementing this, I collected some inspiration from
 // https://github.com/KULeuven-COSIC/SABER/blob/f7f39e4db2f3e22a21e1dd635e0601caae2b4510/Reference_Implementation_KEM/cbd.c.
@@ -15,12 +47,10 @@ namespace saber_utils {
 // https://github.com/itzmeanjan/kyber/blob/8cbb09472dc5f7e5ae8bc52cbcbf6344f637d4fe/include/sampling.hpp#L88-L152.
 template<uint16_t moduli, size_t mu>
 inline poly::poly_t<moduli>
-cbd(std::span<const uint8_t> bytes)
+cbd(std::span<const uint8_t, (poly::N * mu) / 8> bytes)
   requires((mu == 10) || (mu == 8) || (mu == 6))
 {
-  constexpr size_t poly_blen = (poly::N * mu) / 8;
   constexpr size_t muby2 = mu / 2;
-
   poly::poly_t<moduli> res;
 
   if constexpr (muby2 == 5) {
@@ -30,7 +60,7 @@ cbd(std::span<const uint8_t> bytes)
     size_t boff = 0;
     size_t coff = 0;
 
-    while (boff < poly_blen) {
+    while (boff < bytes.size()) {
       const uint64_t word = from_le_bytes<uint64_t>(bytes.subspan(boff, 5));
       const uint64_t hw = ((word >> 0) & mask) + ((word >> 1) & mask) +
                           ((word >> 2) & mask) + ((word >> 3) & mask) +
@@ -55,7 +85,7 @@ cbd(std::span<const uint8_t> bytes)
     size_t boff = 0;
     size_t coff = 0;
 
-    while (boff < poly_blen) {
+    while (boff < bytes.size()) {
       const uint32_t word = from_le_bytes<uint32_t>(bytes.subspan(boff, 4));
       const uint32_t hw = ((word >> 0) & mask) + ((word >> 1) & mask) +
                           ((word >> 2) & mask) + ((word >> 3) & mask);
@@ -79,7 +109,7 @@ cbd(std::span<const uint8_t> bytes)
     size_t boff = 0;
     size_t coff = 0;
 
-    while (boff < poly_blen) {
+    while (boff < bytes.size()) {
       const uint32_t word = from_le_bytes<uint32_t>(bytes.subspan(boff, 3));
       const uint32_t hw = (word & mask) + ((word >> 1) & mask) + ((word >> 2) & mask);
 
