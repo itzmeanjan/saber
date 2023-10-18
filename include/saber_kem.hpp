@@ -13,6 +13,7 @@ constexpr size_t MU = 8;
 constexpr size_t seedBytes = 32;
 constexpr size_t noiseBytes = 32;
 constexpr size_t keyBytes = 32;
+constexpr bool uniform_sampling = false;
 
 // 992 -bytes Saber KEM public key
 constexpr size_t PK_LEN = saber_utils::kem_pklen<L, EP, seedBytes>();
@@ -32,7 +33,8 @@ keygen(std::span<const uint8_t, seedBytes> seedA,
        std::span<uint8_t, PK_LEN> pkey,
        std::span<uint8_t, SK_LEN> skey)
 {
-  saber_kem::keygen<L, EQ, EP, MU>(seedA, seedS, z, pkey, skey);
+  saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(
+    seedA, seedS, z, pkey, skey);
 }
 
 // Given 32 -bytes random sampled `m` and 992 -bytes Saber KEM public key, this
@@ -44,7 +46,8 @@ encaps(std::span<const uint8_t, keyBytes> m,
        std::span<uint8_t, CT_LEN> ctxt,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
 {
-  saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes>(m, pkey, ctxt, seskey);
+  saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
+    m, pkey, ctxt, seskey);
 }
 
 // Given 1088 -bytes cipher text and 2304 -bytes Saber KEM secret key, this routine
@@ -54,7 +57,8 @@ decaps(std::span<const uint8_t, CT_LEN> ctxt,
        std::span<const uint8_t, SK_LEN> skey,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
 {
-  saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(ctxt, skey, seskey);
+  saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
+    ctxt, skey, seskey);
 }
 
 }

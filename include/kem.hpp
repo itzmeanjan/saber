@@ -19,7 +19,8 @@ template<size_t L,
          size_t MU,
          size_t seedBytes,
          size_t noiseBytes,
-         size_t keyBytes>
+         size_t keyBytes,
+         bool uniform_sampling>
 inline void
 keygen(
   std::span<const uint8_t, seedBytes> seedA,
@@ -33,7 +34,8 @@ keygen(
                                                   MU,
                                                   seedBytes,
                                                   noiseBytes,
-                                                  keyBytes))
+                                                  keyBytes,
+                                                  uniform_sampling))
 {
   constexpr size_t pke_pklen = saber_utils::pke_pklen<L, EP, seedBytes>();
   constexpr size_t pke_sklen = saber_utils::pke_sklen<L, EQ>();
@@ -71,14 +73,21 @@ template<size_t L,
          size_t ET,
          size_t MU,
          size_t seedBytes,
-         size_t keyBytes>
+         size_t keyBytes,
+         bool uniform_sampling>
 inline void
 encaps(std::span<const uint8_t, keyBytes> m, // step 1
        std::span<const uint8_t, saber_utils::kem_pklen<L, EP, seedBytes>()> pkey,
        std::span<uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
-  requires(
-    saber_params::validate_kem_encaps_args(L, EQ, EP, ET, MU, seedBytes, keyBytes))
+  requires(saber_params::validate_kem_encaps_args(L,
+                                                  EQ,
+                                                  EP,
+                                                  ET,
+                                                  MU,
+                                                  seedBytes,
+                                                  keyBytes,
+                                                  uniform_sampling))
 {
   std::array<uint8_t, sha3_256::DIGEST_LEN> hashed_m;
   std::array<uint8_t, sha3_256::DIGEST_LEN> hashed_pk;
@@ -138,14 +147,21 @@ template<size_t L,
          size_t ET,
          size_t MU,
          size_t seedBytes,
-         size_t keyBytes>
+         size_t keyBytes,
+         bool uniform_sampling>
 inline void
 decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
        std::span<const uint8_t,
                  saber_utils::kem_sklen<L, EQ, EP, seedBytes, keyBytes>()> skey,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
-  requires(
-    saber_params::validate_kem_decaps_args(L, EQ, EP, ET, MU, seedBytes, keyBytes))
+  requires(saber_params::validate_kem_decaps_args(L,
+                                                  EQ,
+                                                  EP,
+                                                  ET,
+                                                  MU,
+                                                  seedBytes,
+                                                  keyBytes,
+                                                  uniform_sampling))
 {
   constexpr size_t pke_pklen = saber_utils::pke_pklen<L, EP, seedBytes>();
   constexpr size_t pke_sklen = saber_utils::pke_sklen<L, EQ>();
