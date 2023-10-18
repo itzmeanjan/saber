@@ -209,9 +209,11 @@ public:
     return mat;
   }
 
-  // Given random byte string ( seed ) of length `seedBytes` as input, this routine
-  // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from a centered
-  // binomial distribution β_μ, following algorithm 16 of Saber spec.
+  // Given a random byte string ( seed ) of length `seedBytes` as input, this routine
+  // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from either a
+  // centered binomial distribution β_μ ( if uniform_sampling = false ) or a centered
+  // uniform distribution U_μ ( if uniform_sampling = true ), following algorithm 16 of
+  // Saber spec.
   template<bool uniform_sampling, size_t seedBytes, size_t mu>
   inline static poly_matrix_t<rows, 1, moduli> gen_secret(
     std::span<const uint8_t, seedBytes> seed)
