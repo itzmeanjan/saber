@@ -168,15 +168,50 @@ decaps(benchmark::State& state)
   state.SetItemsProcessed(state.iterations());
 }
 
+const auto compute_min = [](const std::vector<double>& v) -> double {
+  return *std::min_element(v.begin(), v.end());
+};
+
+const auto compute_max = [](const std::vector<double>& v) -> double {
+  return *std::max_element(v.begin(), v.end());
+};
+
 // Register for benchmarking LightSaber, Saber and FireSaber KEM routines.
-BENCHMARK(keygen<2, 13, 10, 10, 32, 32, 32>)->Name("lightsaber/keygen");
-BENCHMARK(encaps<2, 13, 10, 3, 10, 32, 32, 32>)->Name("lightsaber/encaps");
-BENCHMARK(decaps<2, 13, 10, 3, 10, 32, 32, 32>)->Name("lightsaber/decaps");
+BENCHMARK(keygen<2, 13, 10, 10, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("lightsaber/keygen");
+BENCHMARK(encaps<2, 13, 10, 3, 10, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("lightsaber/encaps");
+BENCHMARK(decaps<2, 13, 10, 3, 10, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("lightsaber/decaps");
 
-BENCHMARK(keygen<3, 13, 10, 8, 32, 32, 32>)->Name("saber/keygen");
-BENCHMARK(encaps<3, 13, 10, 4, 8, 32, 32, 32>)->Name("saber/encaps");
-BENCHMARK(decaps<3, 13, 10, 4, 8, 32, 32, 32>)->Name("saber/decaps");
+BENCHMARK(keygen<3, 13, 10, 8, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("saber/keygen");
+BENCHMARK(encaps<3, 13, 10, 4, 8, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("saber/encaps");
+BENCHMARK(decaps<3, 13, 10, 4, 8, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("saber/decaps");
 
-BENCHMARK(keygen<4, 13, 10, 6, 32, 32, 32>)->Name("firesaber/keygen");
-BENCHMARK(encaps<4, 13, 10, 6, 6, 32, 32, 32>)->Name("firesaber/encaps");
-BENCHMARK(decaps<4, 13, 10, 6, 6, 32, 32, 32>)->Name("firesaber/decaps");
+BENCHMARK(keygen<4, 13, 10, 6, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("firesaber/keygen");
+BENCHMARK(encaps<4, 13, 10, 6, 6, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("firesaber/encaps");
+BENCHMARK(decaps<4, 13, 10, 6, 6, 32, 32, 32>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("firesaber/decaps");
