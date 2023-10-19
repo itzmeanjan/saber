@@ -66,6 +66,22 @@ public:
 
         coff += 8;
       }
+    } else if constexpr (lg2_moduli == 12) {
+      constexpr uint32_t mask12 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (boff < blen) {
+        const auto ptr = bstr.subspan(boff, 3);
+        const auto word = saber_utils::from_le_bytes<uint32_t>(ptr);
+        boff += 3;
+
+        res[coff + 0] = static_cast<uint16_t>((word >> 0) & mask12);
+        res[coff + 1] = static_cast<uint16_t>((word >> 12) & mask12);
+
+        coff += 2;
+      }
     } else if constexpr (lg2_moduli == 10) {
       constexpr uint64_t mask10 = (1ul << lg2_moduli) - 1;
 
@@ -158,6 +174,23 @@ public:
         res[coff + 7] = static_cast<uint16_t>((word >> 21) & mask3);
 
         coff += 8;
+      }
+    } else if constexpr (lg2_moduli == 2) {
+      constexpr uint8_t mask2 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (boff < blen) {
+        const auto word = bstr[boff];
+        boff += 1;
+
+        res[coff + 0] = static_cast<uint16_t>((word >> 0) & mask2);
+        res[coff + 1] = static_cast<uint16_t>((word >> 2) & mask2);
+        res[coff + 2] = static_cast<uint16_t>((word >> 4) & mask2);
+        res[coff + 3] = static_cast<uint16_t>((word >> 6) & mask2);
+
+        coff += 4;
       }
     } else if constexpr (lg2_moduli == 1) {
       constexpr uint8_t mask1 = (1u << lg2_moduli) - 1;
@@ -304,6 +337,22 @@ public:
         boff += 13;
         coff += 8;
       }
+    } else if constexpr (lg2_moduli == 12) {
+      constexpr uint16_t mask8 = 0xff;
+      constexpr uint16_t mask4 = mask8 >> 4;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = coeffs[coff].as_raw() & mask8;
+        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask4) << 4) |
+                         ((coeffs[coff].as_raw() >> 8) & mask4);
+        bstr[boff + 2] = (coeffs[coff + 1].as_raw() >> 4) & mask8;
+
+        boff += 3;
+        coff += 2;
+      }
     } else if constexpr (lg2_moduli == 10) {
       constexpr uint16_t mask8 = 0xff;
       constexpr uint16_t mask6 = mask8 >> 2;
@@ -407,6 +456,21 @@ public:
 
         boff += 3;
         coff += 8;
+      }
+    } else if constexpr (lg2_moduli == 2) {
+      constexpr uint16_t mask2 = (1u << lg2_moduli) - 1;
+
+      size_t boff = 0;
+      size_t coff = 0;
+
+      while (coff < N) {
+        bstr[boff] = ((coeffs[coff + 3].as_raw() & mask2) << 6) |
+                     ((coeffs[coff + 2].as_raw() & mask2) << 4) |
+                     ((coeffs[coff + 1].as_raw() & mask2) << 2) |
+                     (coeffs[coff].as_raw() & mask2);
+
+        boff += 1;
+        coff += 4;
       }
     } else if constexpr (lg2_moduli == 1) {
       constexpr uint16_t mask1 = (1u << lg2_moduli) - 1;
