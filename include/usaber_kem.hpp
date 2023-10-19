@@ -33,7 +33,7 @@ keygen(std::span<const uint8_t, seedBytes> seedA,
        std::span<uint8_t, PK_LEN> pkey,
        std::span<uint8_t, SK_LEN> skey)
 {
-  saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(
+  _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(
     seedA, seedS, z, pkey, skey);
 }
 
@@ -46,7 +46,7 @@ encaps(std::span<const uint8_t, keyBytes> m,
        std::span<uint8_t, CT_LEN> ctxt,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
 {
-  saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
+  _saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
     m, pkey, ctxt, seskey);
 }
 
@@ -57,7 +57,7 @@ decaps(std::span<const uint8_t, CT_LEN> ctxt,
        std::span<const uint8_t, SK_LEN> skey,
        std::span<uint8_t, sha3_256::DIGEST_LEN> seskey)
 {
-  saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
+  _saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
     ctxt, skey, seskey);
 }
 
