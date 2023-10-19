@@ -16,7 +16,8 @@ template<size_t L,
          size_t ET,
          size_t MU,
          size_t seedBytes,
-         size_t noiseBytes>
+         size_t noiseBytes,
+         bool uniform_sampling>
 void
 test_saber_pke()
 {
@@ -50,24 +51,41 @@ test_saber_pke()
   auto _skey = std::span<uint8_t, sklen>(skey);
   auto _ctxt = std::span<uint8_t, ctlen>(ctxt);
 
-  saber_pke::keygen<L, EQ, EP, MU>(_seedA, _seedS, _pkey, _skey);
-  saber_pke::encrypt<L, EQ, EP, ET, MU>(_msg, _seedS_prm, _pkey, _ctxt);
-  saber_pke::decrypt<L, EQ, EP, ET, MU>(_ctxt, _skey, _dec);
+  saber_pke::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, uniform_sampling>(
+    _seedA, _seedS, _pkey, _skey);
+  saber_pke::encrypt<L, EQ, EP, ET, MU, seedBytes, uniform_sampling>(
+    _msg, _seedS_prm, _pkey, _ctxt);
+  saber_pke::decrypt<L, EQ, EP, ET, MU, uniform_sampling>(_ctxt, _skey, _dec);
 
   EXPECT_EQ(msg, dec);
 }
 
 TEST(SaberKEM, LightSaberPublicKeyEncryption)
 {
-  test_saber_pke<2, 13, 10, 3, 10, 32, 32>();
+  test_saber_pke<2, 13, 10, 3, 10, 32, 32, false>();
 }
 
 TEST(SaberKEM, SaberPublicKeyEncryption)
 {
-  test_saber_pke<3, 13, 10, 4, 8, 32, 32>();
+  test_saber_pke<3, 13, 10, 4, 8, 32, 32, false>();
 }
 
 TEST(SaberKEM, FireSaberPublicKeyEncryption)
 {
-  test_saber_pke<4, 13, 10, 6, 6, 32, 32>();
+  test_saber_pke<4, 13, 10, 6, 6, 32, 32, false>();
+}
+
+TEST(SaberKEM, uLightSaberPublicKeyEncryption)
+{
+  test_saber_pke<2, 12, 10, 3, 2, 32, 32, true>();
+}
+
+TEST(SaberKEM, uSaberPublicKeyEncryption)
+{
+  test_saber_pke<3, 12, 10, 4, 2, 32, 32, true>();
+}
+
+TEST(SaberKEM, uFireSaberPublicKeyEncryption)
+{
+  test_saber_pke<4, 12, 10, 6, 2, 32, 32, true>();
 }

@@ -22,7 +22,8 @@ template<size_t L,
          size_t MU,
          size_t seedBytes,
          size_t noiseBytes,
-         size_t keyBytes>
+         size_t keyBytes,
+         bool uniform_sampling>
 void
 test_saber_kem()
 {
@@ -58,11 +59,12 @@ test_saber_kem()
   prng.read(_z);
   prng.read(_m);
 
-  saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes>(
+  _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(
     _seedA, _seedS, _z, _pkey, _skey);
-  saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(
+  _saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
     _m, _pkey, _ctxt, _seskey_a);
-  saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(_ctxt, _skey, _seskey_b);
+  _saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
+    _ctxt, _skey, _seskey_b);
 
   EXPECT_EQ(seskey_a, seskey_b);
 }
@@ -366,17 +368,32 @@ kat_firesaber()
 
 TEST(SaberKEM, LightSaberKeyEncapsulationMechanism)
 {
-  test_saber_kem<2, 13, 10, 3, 10, 32, 32, 32>();
+  test_saber_kem<2, 13, 10, 3, 10, 32, 32, 32, false>();
 }
 
 TEST(SaberKEM, SaberKeyEncapsulationMechanism)
 {
-  test_saber_kem<3, 13, 10, 4, 8, 32, 32, 32>();
+  test_saber_kem<3, 13, 10, 4, 8, 32, 32, 32, false>();
 }
 
 TEST(SaberKEM, FireSaberKeyEncapsulationMechanism)
 {
-  test_saber_kem<4, 13, 10, 6, 6, 32, 32, 32>();
+  test_saber_kem<4, 13, 10, 6, 6, 32, 32, 32, false>();
+}
+
+TEST(SaberKEM, uLightSaberKeyEncapsulationMechanism)
+{
+  test_saber_kem<2, 12, 10, 3, 2, 32, 32, 32, true>();
+}
+
+TEST(SaberKEM, uSaberKeyEncapsulationMechanism)
+{
+  test_saber_kem<3, 12, 10, 4, 2, 32, 32, 32, true>();
+}
+
+TEST(SaberKEM, uFireSaberKeyEncapsulationMechanism)
+{
+  test_saber_kem<4, 12, 10, 6, 2, 32, 32, 32, true>();
 }
 
 TEST(SaberKEM, LightSaberKnownAnswerTests)
