@@ -49,7 +49,7 @@ validate_poly_serialization_args()
 {
   constexpr uint16_t lg2_moduli = saber_params::log2(moduli);
 
-  std::array<uint16_t, 7> bit_widths = { 13, 10, 6, 5, 4, 3, 1 };
+  std::array<uint16_t, 9> bit_widths = { 13, 12, 10, 6, 5, 4, 3, 2, 1 };
   auto elm = std::find(bit_widths.begin(), bit_widths.end(), lg2_moduli);
   return elm != bit_widths.end();
 }

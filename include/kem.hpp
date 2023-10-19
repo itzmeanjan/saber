@@ -6,7 +6,7 @@
 #include "utils.hpp"
 
 // Algorithms related to Saber Key Encapsulation Mechanism
-namespace saber_kem {
+namespace _saber_kem {
 
 // Given seedBytes `seedA` ( used for generating matrix A, in Saber PKE keygen algorithm
 // ), noiseBytes `seedS` ( used for generating secret vector s, in Saber PKE keygen
@@ -49,7 +49,8 @@ keygen(
   auto sk_z = skey.template subspan<off2, keyBytes>();
 
   // step 1
-  saber_pke::keygen<L, EQ, EP, MU>(seedA, seedS, pkey, sk_sk);
+  saber_pke::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, uniform_sampling>(
+    seedA, seedS, pkey, sk_sk);
   // step 4 ( partial )
   std::memcpy(sk_pk.data(), pkey.data(), pkey.size());
 
@@ -122,7 +123,8 @@ encaps(std::span<const uint8_t, keyBytes> m, // step 1
   // step 7
   auto _hm = std::span<const uint8_t, hashed_m.size()>(hashed_m);
   auto _r = std::span<const uint8_t, r.size()>(r);
-  saber_pke::encrypt<L, EQ, EP, ET, MU>(_hm, _r, pkey, ctxt);
+  saber_pke::encrypt<L, EQ, EP, ET, MU, seedBytes, uniform_sampling>(
+    _hm, _r, pkey, ctxt);
 
   // step 8
   h256.absorb(ctxt);
@@ -182,7 +184,7 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
   std::array<uint8_t, keyBytes> temp;
 
   // step 2
-  saber_pke::decrypt<L, EQ, EP, ET, MU>(ctxt, sk, m);
+  saber_pke::decrypt<L, EQ, EP, ET, MU, uniform_sampling>(ctxt, sk, m);
 
   // step 3, 4
   sha3_512::sha3_512_t h512;
@@ -199,7 +201,8 @@ decaps(std::span<const uint8_t, saber_utils::kem_ctlen<L, EP, ET>()> ctxt,
   // step 6
   auto _m = std::span<const uint8_t, m.size()>(m);
   auto _r = std::span<const uint8_t, r.size()>(r);
-  saber_pke::encrypt<L, EQ, EP, ET, MU>(_m, _r, pk, ctxt_prm);
+  saber_pke::encrypt<L, EQ, EP, ET, MU, seedBytes, uniform_sampling>(
+    _m, _r, pk, ctxt_prm);
 
   // step 7
   auto c = saber_utils::ct_eq_bytes<ctxt.size()>(ctxt_prm, ctxt);
