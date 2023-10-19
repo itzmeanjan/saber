@@ -183,7 +183,8 @@ const auto compute_max = [](const std::vector<double>& v) -> double {
   return *std::max_element(v.begin(), v.end());
 };
 
-// Register for benchmarking LightSaber, Saber and FireSaber KEM routines.
+// Register for benchmarking LightSaber, Saber, FireSaber, uLightSaber, uSaber and
+// uFireSaber KEM routines.
 BENCHMARK(keygen<2, 13, 10, 10, 32, 32, 32, false>)
   ->ComputeStatistics("min", compute_min)
   ->ComputeStatistics("max", compute_max)
@@ -222,3 +223,42 @@ BENCHMARK(decaps<4, 13, 10, 6, 6, 32, 32, 32, false>)
   ->ComputeStatistics("min", compute_min)
   ->ComputeStatistics("max", compute_max)
   ->Name("firesaber/decaps");
+
+BENCHMARK(keygen<2, 12, 10, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("ulightsaber/keygen");
+BENCHMARK(encaps<2, 12, 10, 3, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("ulightsaber/encaps");
+BENCHMARK(decaps<2, 12, 10, 3, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("ulightsaber/decaps");
+
+BENCHMARK(keygen<3, 12, 10, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("usaber/keygen");
+BENCHMARK(encaps<3, 12, 10, 4, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("usaber/encaps");
+BENCHMARK(decaps<3, 12, 10, 4, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("usaber/decaps");
+
+BENCHMARK(keygen<4, 12, 10, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("ufiresaber/keygen");
+BENCHMARK(encaps<4, 12, 10, 6, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("ufiresaber/encaps");
+BENCHMARK(decaps<4, 12, 10, 6, 2, 32, 32, 32, true>)
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max)
+  ->Name("ufiresaber/decaps");
