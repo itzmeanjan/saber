@@ -58,8 +58,7 @@ public:
         const auto word1 = saber_utils::from_le_bytes<uint64_t>(ptr1);
         boff += 5;
 
-        res[coff + 4] = (static_cast<uint16_t>(word1 & mask1) << 12) |
-                        static_cast<uint16_t>(word0 >> 52);
+        res[coff + 4] = (static_cast<uint16_t>(word1 & mask1) << 12) | static_cast<uint16_t>(word0 >> 52);
         res[coff + 5] = static_cast<uint16_t>((word1 >> 1) & mask13);
         res[coff + 6] = static_cast<uint16_t>((word1 >> 14) & mask13);
         res[coff + 7] = static_cast<uint16_t>((word1 >> 27) & mask13);
@@ -222,10 +221,7 @@ public:
   inline constexpr zq::zq_t& operator[](const size_t idx) { return coeffs[idx]; }
 
   // Returns const reference to coefficient at given polynomial index ∈ [0, N).
-  inline constexpr const zq::zq_t& operator[](const size_t idx) const
-  {
-    return coeffs[idx];
-  }
+  inline constexpr const zq::zq_t& operator[](const size_t idx) const { return coeffs[idx]; }
 
   // Addition of two polynomials s.t. their coefficients are over Zq.
   inline constexpr poly_t operator+(const poly_t& rhs) const
@@ -255,10 +251,7 @@ public:
   }
 
   // Multiplication of two polynomials s.t. their coefficients are over Zq.
-  inline constexpr poly_t operator*(const poly_t& rhs) const
-  {
-    return karatsuba::karamul(this->coeffs, rhs.coeffs);
-  }
+  inline constexpr poly_t operator*(const poly_t& rhs) const { return karatsuba::karamul(this->coeffs, rhs.coeffs); }
 
   // Left shift each coefficient of the polynomial by factor `off`.
   inline constexpr poly_t operator<<(const size_t off) const
@@ -314,24 +307,17 @@ public:
 
       while (coff < N) {
         bstr[boff] = coeffs[coff].as_raw() & mask8;
-        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask3) << 5) |
-                         ((coeffs[coff].as_raw() >> 8) & mask5);
+        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask3) << 5) | ((coeffs[coff].as_raw() >> 8) & mask5);
         bstr[boff + 2] = ((coeffs[coff + 1].as_raw() >> 3) & mask8);
-        bstr[boff + 3] = ((coeffs[coff + 2].as_raw() & mask6) << 2) |
-                         ((coeffs[coff + 1].as_raw() >> 11) & mask2);
-        bstr[boff + 4] = ((coeffs[coff + 3].as_raw() & mask1) << 7) |
-                         ((coeffs[coff + 2].as_raw() >> 6) & mask7);
+        bstr[boff + 3] = ((coeffs[coff + 2].as_raw() & mask6) << 2) | ((coeffs[coff + 1].as_raw() >> 11) & mask2);
+        bstr[boff + 4] = ((coeffs[coff + 3].as_raw() & mask1) << 7) | ((coeffs[coff + 2].as_raw() >> 6) & mask7);
         bstr[boff + 5] = (coeffs[coff + 3].as_raw() >> 1) & mask8;
-        bstr[boff + 6] = ((coeffs[coff + 4].as_raw() & mask4) << 4) |
-                         ((coeffs[coff + 3].as_raw() >> 9) & mask4);
+        bstr[boff + 6] = ((coeffs[coff + 4].as_raw() & mask4) << 4) | ((coeffs[coff + 3].as_raw() >> 9) & mask4);
         bstr[boff + 7] = (coeffs[coff + 4].as_raw() >> 4) & mask8;
-        bstr[boff + 8] = ((coeffs[coff + 5].as_raw() & mask7) << 1) |
-                         ((coeffs[coff + 4].as_raw() >> 12) & mask1);
-        bstr[boff + 9] = ((coeffs[coff + 6].as_raw() & mask2) << 6) |
-                         ((coeffs[coff + 5].as_raw() >> 7) & mask6);
+        bstr[boff + 8] = ((coeffs[coff + 5].as_raw() & mask7) << 1) | ((coeffs[coff + 4].as_raw() >> 12) & mask1);
+        bstr[boff + 9] = ((coeffs[coff + 6].as_raw() & mask2) << 6) | ((coeffs[coff + 5].as_raw() >> 7) & mask6);
         bstr[boff + 10] = (coeffs[coff + 6].as_raw() >> 2) & mask8;
-        bstr[boff + 11] = ((coeffs[coff + 7].as_raw() & mask5) << 3) |
-                          ((coeffs[coff + 6].as_raw() >> 10) & mask3);
+        bstr[boff + 11] = ((coeffs[coff + 7].as_raw() & mask5) << 3) | ((coeffs[coff + 6].as_raw() >> 10) & mask3);
         bstr[boff + 12] = (coeffs[coff + 7].as_raw() >> 5) & mask8;
 
         boff += 13;
@@ -346,8 +332,7 @@ public:
 
       while (coff < N) {
         bstr[boff] = coeffs[coff].as_raw() & mask8;
-        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask4) << 4) |
-                         ((coeffs[coff].as_raw() >> 8) & mask4);
+        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask4) << 4) | ((coeffs[coff].as_raw() >> 8) & mask4);
         bstr[boff + 2] = (coeffs[coff + 1].as_raw() >> 4) & mask8;
 
         boff += 3;
@@ -364,12 +349,9 @@ public:
 
       while (coff < N) {
         bstr[boff] = coeffs[coff].as_raw() & mask8;
-        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask6) << 2) |
-                         ((coeffs[coff].as_raw() >> 8) & mask2);
-        bstr[boff + 2] = ((coeffs[coff + 2].as_raw() & mask4) << 4) |
-                         ((coeffs[coff + 1].as_raw() >> 6) & mask4);
-        bstr[boff + 3] = ((coeffs[coff + 3].as_raw() & mask2) << 6) |
-                         ((coeffs[coff + 2].as_raw() >> 4) & mask6);
+        bstr[boff + 1] = ((coeffs[coff + 1].as_raw() & mask6) << 2) | ((coeffs[coff].as_raw() >> 8) & mask2);
+        bstr[boff + 2] = ((coeffs[coff + 2].as_raw() & mask4) << 4) | ((coeffs[coff + 1].as_raw() >> 6) & mask4);
+        bstr[boff + 3] = ((coeffs[coff + 3].as_raw() & mask2) << 6) | ((coeffs[coff + 2].as_raw() >> 4) & mask6);
         bstr[boff + 4] = (coeffs[coff + 3].as_raw() >> 2) & mask8;
 
         boff += 5;
@@ -384,12 +366,9 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] =
-          ((coeffs[coff + 1].as_raw() & mask2) << 6) | (coeffs[coff].as_raw() & mask6);
-        bstr[boff + 1] = ((coeffs[coff + 2].as_raw() & mask4) << 4) |
-                         ((coeffs[coff + 1].as_raw() >> 2) & mask4);
-        bstr[boff + 2] = ((coeffs[coff + 3].as_raw() & mask6) << 2) |
-                         ((coeffs[coff + 2].as_raw() >> 4) & mask2);
+        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask2) << 6) | (coeffs[coff].as_raw() & mask6);
+        bstr[boff + 1] = ((coeffs[coff + 2].as_raw() & mask4) << 4) | ((coeffs[coff + 1].as_raw() >> 2) & mask4);
+        bstr[boff + 2] = ((coeffs[coff + 3].as_raw() & mask6) << 2) | ((coeffs[coff + 2].as_raw() >> 4) & mask2);
 
         boff += 3;
         coff += 4;
@@ -405,18 +384,11 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask3) << 5) |
-                     (coeffs[coff + 0].as_raw() & mask5);
-        bstr[boff + 1] = ((coeffs[coff + 3].as_raw() & mask1) << 7) |
-                         ((coeffs[coff + 2].as_raw() & mask5) << 2) |
-                         ((coeffs[coff + 1].as_raw() >> 3) & mask2);
-        bstr[boff + 2] = ((coeffs[coff + 4].as_raw() & mask4) << 4) |
-                         ((coeffs[coff + 3].as_raw() >> 1) & mask4);
-        bstr[boff + 3] = ((coeffs[coff + 6].as_raw() & mask2) << 6) |
-                         ((coeffs[coff + 5].as_raw() & mask5) << 1) |
-                         ((coeffs[coff + 4].as_raw() >> 4) & mask1);
-        bstr[boff + 4] = ((coeffs[coff + 7].as_raw() & mask5) << 3) |
-                         ((coeffs[coff + 6].as_raw() >> 2) & mask3);
+        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask3) << 5) | (coeffs[coff + 0].as_raw() & mask5);
+        bstr[boff + 1] = ((coeffs[coff + 3].as_raw() & mask1) << 7) | ((coeffs[coff + 2].as_raw() & mask5) << 2) | ((coeffs[coff + 1].as_raw() >> 3) & mask2);
+        bstr[boff + 2] = ((coeffs[coff + 4].as_raw() & mask4) << 4) | ((coeffs[coff + 3].as_raw() >> 1) & mask4);
+        bstr[boff + 3] = ((coeffs[coff + 6].as_raw() & mask2) << 6) | ((coeffs[coff + 5].as_raw() & mask5) << 1) | ((coeffs[coff + 4].as_raw() >> 4) & mask1);
+        bstr[boff + 4] = ((coeffs[coff + 7].as_raw() & mask5) << 3) | ((coeffs[coff + 6].as_raw() >> 2) & mask3);
 
         boff += 5;
         coff += 8;
@@ -428,8 +400,7 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] =
-          ((coeffs[coff + 1].as_raw() & mask) << 4) | (coeffs[coff].as_raw() & mask);
+        bstr[boff] = ((coeffs[coff + 1].as_raw() & mask) << 4) | (coeffs[coff].as_raw() & mask);
 
         boff += 1;
         coff += 2;
@@ -443,16 +414,10 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 2].as_raw() & mask2) << 6) |
-                     ((coeffs[coff + 1].as_raw() & mask3) << 3) |
-                     (coeffs[coff].as_raw() & mask3);
-        bstr[boff + 1] = ((coeffs[coff + 5].as_raw() & mask1) << 7) |
-                         ((coeffs[coff + 4].as_raw() & mask3) << 4) |
-                         ((coeffs[coff + 3].as_raw() & mask3) << 1) |
+        bstr[boff] = ((coeffs[coff + 2].as_raw() & mask2) << 6) | ((coeffs[coff + 1].as_raw() & mask3) << 3) | (coeffs[coff].as_raw() & mask3);
+        bstr[boff + 1] = ((coeffs[coff + 5].as_raw() & mask1) << 7) | ((coeffs[coff + 4].as_raw() & mask3) << 4) | ((coeffs[coff + 3].as_raw() & mask3) << 1) |
                          ((coeffs[coff + 2].as_raw() >> 2) & mask1);
-        bstr[boff + 2] = ((coeffs[coff + 7].as_raw() & mask3) << 5) |
-                         ((coeffs[coff + 6].as_raw() & mask3) << 2) |
-                         ((coeffs[coff + 5].as_raw() >> 1) & mask2);
+        bstr[boff + 2] = ((coeffs[coff + 7].as_raw() & mask3) << 5) | ((coeffs[coff + 6].as_raw() & mask3) << 2) | ((coeffs[coff + 5].as_raw() >> 1) & mask2);
 
         boff += 3;
         coff += 8;
@@ -464,9 +429,7 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 3].as_raw() & mask2) << 6) |
-                     ((coeffs[coff + 2].as_raw() & mask2) << 4) |
-                     ((coeffs[coff + 1].as_raw() & mask2) << 2) |
+        bstr[boff] = ((coeffs[coff + 3].as_raw() & mask2) << 6) | ((coeffs[coff + 2].as_raw() & mask2) << 4) | ((coeffs[coff + 1].as_raw() & mask2) << 2) |
                      (coeffs[coff].as_raw() & mask2);
 
         boff += 1;
@@ -479,14 +442,9 @@ public:
       size_t coff = 0;
 
       while (coff < N) {
-        bstr[boff] = ((coeffs[coff + 7].as_raw() & mask1) << 7) |
-                     ((coeffs[coff + 6].as_raw() & mask1) << 6) |
-                     ((coeffs[coff + 5].as_raw() & mask1) << 5) |
-                     ((coeffs[coff + 4].as_raw() & mask1) << 4) |
-                     ((coeffs[coff + 3].as_raw() & mask1) << 3) |
-                     ((coeffs[coff + 2].as_raw() & mask1) << 2) |
-                     ((coeffs[coff + 1].as_raw() & mask1) << 1) |
-                     (coeffs[coff].as_raw() & mask1);
+        bstr[boff] = ((coeffs[coff + 7].as_raw() & mask1) << 7) | ((coeffs[coff + 6].as_raw() & mask1) << 6) | ((coeffs[coff + 5].as_raw() & mask1) << 5) |
+                     ((coeffs[coff + 4].as_raw() & mask1) << 4) | ((coeffs[coff + 3].as_raw() & mask1) << 3) | ((coeffs[coff + 2].as_raw() & mask1) << 2) |
+                     ((coeffs[coff + 1].as_raw() & mask1) << 1) | (coeffs[coff].as_raw() & mask1);
 
         boff += 1;
         coff += 8;

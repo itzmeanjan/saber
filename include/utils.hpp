@@ -16,8 +16,7 @@ namespace saber_utils {
 template<typename T>
 static inline constexpr T
 bswap(const T v)
-  requires(std::is_unsigned_v<T> &&
-           ((sizeof(T) == 2) || (sizeof(T) == 4) || (sizeof(T) == 8)))
+  requires(std::is_unsigned_v<T> && ((sizeof(T) == 2) || (sizeof(T) == 4) || (sizeof(T) == 8)))
 {
   // For uint16_t
   if constexpr (sizeof(T) == 2) {
@@ -32,8 +31,7 @@ bswap(const T v)
 #if defined __GNUG__
     return __builtin_bswap32(v);
 #else
-    return ((v & 0x000000ffu) << 24) | ((v & 0x0000ff00u) << 8) |
-           ((v & 0x00ff0000u) >> 8) | ((v & 0xff000000u) >> 24);
+    return ((v & 0x000000ffu) << 24) | ((v & 0x0000ff00u) << 8) | ((v & 0x00ff0000u) >> 8) | ((v & 0xff000000u) >> 24);
 #endif
   }
   // For uint64_t
@@ -41,10 +39,8 @@ bswap(const T v)
 #if defined __GNUG__
     return __builtin_bswap64(v);
 #else
-    return ((v & 0x00000000000000fful) << 56) | ((v & 0x000000000000ff00ul) << 40) |
-           ((v & 0x0000000000ff0000ul) << 24) | ((v & 0x00000000ff000000ul) << 0x8) |
-           ((v & 0x000000ff00000000ul) >> 0x8) | ((v & 0x0000ff0000000000ul) >> 24) |
-           ((v & 0x00ff000000000000ul) >> 40) | ((v & 0xff00000000000000ul) >> 56);
+    return ((v & 0x00000000000000fful) << 56) | ((v & 0x000000000000ff00ul) << 40) | ((v & 0x0000000000ff0000ul) << 24) | ((v & 0x00000000ff000000ul) << 0x8) |
+           ((v & 0x000000ff00000000ul) >> 0x8) | ((v & 0x0000ff0000000000ul) >> 24) | ((v & 0x00ff000000000000ul) >> 40) | ((v & 0xff00000000000000ul) >> 56);
 #endif
   }
 }
@@ -140,10 +136,7 @@ ct_eq_bytes(std::span<const uint8_t, L> bytesa, std::span<const uint8_t, L> byte
 // If flag holds any other value, it's undefined behaviour.
 template<size_t L>
 inline constexpr void
-ct_sel_bytes(const uint32_t flag,
-             std::span<uint8_t, L> dst,
-             std::span<const uint8_t, L> bytesa,
-             std::span<const uint8_t, L> bytesb)
+ct_sel_bytes(const uint32_t flag, std::span<uint8_t, L> dst, std::span<const uint8_t, L> bytesa, std::span<const uint8_t, L> bytesb)
 {
   for (size_t i = 0; i < L; i++) {
     dst[i] = subtle::ct_select(flag, bytesa[i], bytesb[i]);

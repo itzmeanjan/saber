@@ -15,15 +15,7 @@
 // - encapsulating message, generating cipher text and 32 -bytes shared secret
 // - decapsulating cipher text, generating 32 -bytes shared secret
 // - asserting equality of shared secret obtained by both parties
-template<size_t L,
-         size_t EQ,
-         size_t EP,
-         size_t ET,
-         size_t MU,
-         size_t seedBytes,
-         size_t noiseBytes,
-         size_t keyBytes,
-         bool uniform_sampling>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes, size_t noiseBytes, size_t keyBytes, bool uniform_sampling>
 void
 test_saber_kem()
 {
@@ -59,12 +51,9 @@ test_saber_kem()
   prng.read(_z);
   prng.read(_m);
 
-  _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(
-    _seedA, _seedS, _z, _pkey, _skey);
-  _saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
-    _m, _pkey, _ctxt, _seskey_a);
-  _saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(
-    _ctxt, _skey, _seskey_b);
+  _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(_seedA, _seedS, _z, _pkey, _skey);
+  _saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(_m, _pkey, _ctxt, _seskey_a);
+  _saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(_ctxt, _skey, _seskey_b);
 
   EXPECT_EQ(seskey_a, seskey_b);
 }

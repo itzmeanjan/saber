@@ -62,18 +62,12 @@ cbd(std::span<const uint8_t, (poly::N * mu) / 8> bytes)
 
     while (boff < bytes.size()) {
       const uint64_t word = from_le_bytes<uint64_t>(bytes.subspan(boff, 5));
-      const uint64_t hw = ((word >> 0) & mask) + ((word >> 1) & mask) +
-                          ((word >> 2) & mask) + ((word >> 3) & mask) +
-                          ((word >> 4) & mask);
+      const uint64_t hw = ((word >> 0) & mask) + ((word >> 1) & mask) + ((word >> 2) & mask) + ((word >> 3) & mask) + ((word >> 4) & mask);
 
-      res[coff + 0] = static_cast<uint16_t>((hw >> 0) & mask5) -
-                      static_cast<uint16_t>((hw >> 5) & mask5);
-      res[coff + 1] = static_cast<uint16_t>((hw >> 10) & mask5) -
-                      static_cast<uint16_t>((hw >> 15) & mask5);
-      res[coff + 2] = static_cast<uint16_t>((hw >> 20) & mask5) -
-                      static_cast<uint16_t>((hw >> 25) & mask5);
-      res[coff + 3] = static_cast<uint16_t>((hw >> 30) & mask5) -
-                      static_cast<uint16_t>((hw >> 35) & mask5);
+      res[coff + 0] = static_cast<uint16_t>((hw >> 0) & mask5) - static_cast<uint16_t>((hw >> 5) & mask5);
+      res[coff + 1] = static_cast<uint16_t>((hw >> 10) & mask5) - static_cast<uint16_t>((hw >> 15) & mask5);
+      res[coff + 2] = static_cast<uint16_t>((hw >> 20) & mask5) - static_cast<uint16_t>((hw >> 25) & mask5);
+      res[coff + 3] = static_cast<uint16_t>((hw >> 30) & mask5) - static_cast<uint16_t>((hw >> 35) & mask5);
 
       boff += 5;
       coff += 4;
@@ -87,17 +81,12 @@ cbd(std::span<const uint8_t, (poly::N * mu) / 8> bytes)
 
     while (boff < bytes.size()) {
       const uint32_t word = from_le_bytes<uint32_t>(bytes.subspan(boff, 4));
-      const uint32_t hw = ((word >> 0) & mask) + ((word >> 1) & mask) +
-                          ((word >> 2) & mask) + ((word >> 3) & mask);
+      const uint32_t hw = ((word >> 0) & mask) + ((word >> 1) & mask) + ((word >> 2) & mask) + ((word >> 3) & mask);
 
-      res[coff + 0] = static_cast<uint16_t>((hw >> 0) & mask4) -
-                      static_cast<uint16_t>((hw >> 4) & mask4);
-      res[coff + 1] = static_cast<uint16_t>((hw >> 8) & mask4) -
-                      static_cast<uint16_t>((hw >> 12) & mask4);
-      res[coff + 2] = static_cast<uint16_t>((hw >> 16) & mask4) -
-                      static_cast<uint16_t>((hw >> 20) & mask4);
-      res[coff + 3] = static_cast<uint16_t>((hw >> 24) & mask4) -
-                      static_cast<uint16_t>((hw >> 28) & mask4);
+      res[coff + 0] = static_cast<uint16_t>((hw >> 0) & mask4) - static_cast<uint16_t>((hw >> 4) & mask4);
+      res[coff + 1] = static_cast<uint16_t>((hw >> 8) & mask4) - static_cast<uint16_t>((hw >> 12) & mask4);
+      res[coff + 2] = static_cast<uint16_t>((hw >> 16) & mask4) - static_cast<uint16_t>((hw >> 20) & mask4);
+      res[coff + 3] = static_cast<uint16_t>((hw >> 24) & mask4) - static_cast<uint16_t>((hw >> 28) & mask4);
 
       boff += 4;
       coff += 4;
@@ -113,14 +102,10 @@ cbd(std::span<const uint8_t, (poly::N * mu) / 8> bytes)
       const uint32_t word = from_le_bytes<uint32_t>(bytes.subspan(boff, 3));
       const uint32_t hw = (word & mask) + ((word >> 1) & mask) + ((word >> 2) & mask);
 
-      res[coff + 0] = static_cast<uint16_t>((hw >> 0) & mask3) -
-                      static_cast<uint16_t>((hw >> 3) & mask3);
-      res[coff + 1] = static_cast<uint16_t>((hw >> 6) & mask3) -
-                      static_cast<uint16_t>((hw >> 9) & mask3);
-      res[coff + 2] = static_cast<uint16_t>((hw >> 12) & mask3) -
-                      static_cast<uint16_t>((hw >> 15) & mask3);
-      res[coff + 3] = static_cast<uint16_t>((hw >> 18) & mask3) -
-                      static_cast<uint16_t>((hw >> 21) & mask3);
+      res[coff + 0] = static_cast<uint16_t>((hw >> 0) & mask3) - static_cast<uint16_t>((hw >> 3) & mask3);
+      res[coff + 1] = static_cast<uint16_t>((hw >> 6) & mask3) - static_cast<uint16_t>((hw >> 9) & mask3);
+      res[coff + 2] = static_cast<uint16_t>((hw >> 12) & mask3) - static_cast<uint16_t>((hw >> 15) & mask3);
+      res[coff + 3] = static_cast<uint16_t>((hw >> 18) & mask3) - static_cast<uint16_t>((hw >> 21) & mask3);
 
       boff += 3;
       coff += 4;

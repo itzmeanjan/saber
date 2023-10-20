@@ -10,14 +10,7 @@
 // - encrypting a 32 -bytes message using public key
 // - decrypting the cipher text using secret key
 // - asserting equality of original message and decrypted one
-template<size_t L,
-         size_t EQ,
-         size_t EP,
-         size_t ET,
-         size_t MU,
-         size_t seedBytes,
-         size_t noiseBytes,
-         bool uniform_sampling>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes, size_t noiseBytes, bool uniform_sampling>
 void
 test_saber_pke()
 {
@@ -51,10 +44,8 @@ test_saber_pke()
   auto _skey = std::span<uint8_t, sklen>(skey);
   auto _ctxt = std::span<uint8_t, ctlen>(ctxt);
 
-  saber_pke::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, uniform_sampling>(
-    _seedA, _seedS, _pkey, _skey);
-  saber_pke::encrypt<L, EQ, EP, ET, MU, seedBytes, uniform_sampling>(
-    _msg, _seedS_prm, _pkey, _ctxt);
+  saber_pke::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, uniform_sampling>(_seedA, _seedS, _pkey, _skey);
+  saber_pke::encrypt<L, EQ, EP, ET, MU, seedBytes, uniform_sampling>(_msg, _seedS_prm, _pkey, _ctxt);
   saber_pke::decrypt<L, EQ, EP, ET, MU, uniform_sampling>(_ctxt, _skey, _dec);
 
   EXPECT_EQ(msg, dec);
