@@ -48,4 +48,7 @@ TEST(SaberKEM, PolynomialMatrixConversion)
   test_poly_matrix_conversion<2, (1 << 13)>(); // lightsaber
   test_poly_matrix_conversion<3, (1 << 13)>(); // saber
   test_poly_matrix_conversion<4, (1 << 13)>(); // firesaber
+  test_poly_matrix_conversion<2, (1 << 12)>(); // uLightsaber
+  test_poly_matrix_conversion<3, (1 << 12)>(); // uSaber
+  test_poly_matrix_conversion<4, (1 << 12)>(); // uFiresaber
 }

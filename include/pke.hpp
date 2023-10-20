@@ -12,13 +12,13 @@ namespace saber_pke {
 // -bytes `seedS` ( used for generating secret vector s ), this routine can be used for
 // generating a Saber PKE public, private keypair, following algorithm 17 in
 // section 8.4.1 of Saber spec.
-template<size_t L, size_t EQ, size_t EP, size_t MU, size_t seedBytes, size_t noiseBytes>
+template<size_t L, size_t EQ, size_t EP, size_t MU, size_t seedBytes, size_t noiseBytes, bool uniform_sampling>
 inline void
 keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
        std::span<const uint8_t, noiseBytes> seedS, // step 3
        std::span<uint8_t, saber_utils::pke_pklen<L, EP, seedBytes>()> pkey,
        std::span<uint8_t, saber_utils::pke_sklen<L, EQ>()> skey)
-  requires(saber_params::validate_pke_keygen_args(L, EQ, EP, MU, seedBytes, noiseBytes))
+  requires(saber_params::validate_pke_keygen_args(L, EQ, EP, MU, seedBytes, noiseBytes, uniform_sampling))
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
@@ -35,7 +35,7 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
 
   // step 4, 5
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(hashedSeedA);
-  auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<noiseBytes, MU>(seedS);
+  auto s = mat::poly_matrix_t<L, 1, Q>::template gen_secret<uniform_sampling, noiseBytes, MU>(seedS);
 
   // step 6, 7, 8
   auto A_T = A.transpose();
@@ -57,13 +57,13 @@ keygen(std::span<const uint8_t, seedBytes> seedA,  // step 1
 // this routine can be used for encrypting fixed length message using Saber public key
 // encryption algorithm, computing a cipher text. This routine is an implementation of
 // algorithm 18 in section 8.4.2 of Saber spec.
-template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes, bool uniform_sampling>
 inline void
 encrypt(std::span<const uint8_t, 32> msg,
         std::span<const uint8_t, seedBytes> seedS,
         std::span<const uint8_t, saber_utils::pke_pklen<L, EP, seedBytes>()> pkey,
         std::span<uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt)
-  requires(saber_params::validate_pke_encrypt_args(L, EQ, EP, ET, MU, seedBytes))
+  requires(saber_params::validate_pke_encrypt_args(L, EQ, EP, ET, MU, seedBytes, uniform_sampling))
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;
@@ -78,7 +78,7 @@ encrypt(std::span<const uint8_t, 32> msg,
 
   // step 2, 3
   auto A = mat::poly_matrix_t<L, L, Q>::template gen_matrix<seedBytes>(seedA);
-  auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<seedBytes, MU>(seedS);
+  auto s_prm = mat::poly_matrix_t<L, 1, Q>::template gen_secret<uniform_sampling, seedBytes, MU>(seedS);
 
   // step 4, 5, 6
   auto b_prm = A.template mat_vec_mul<L>(s_prm) + h;
@@ -112,12 +112,10 @@ encrypt(std::span<const uint8_t, 32> msg,
 // decrypting the cipher text to 32 -bytes plain text message, which was encrypted using
 // corresponding ( associated with this secret key ) Saber PKE public key. This routine
 // is an implementation of algorithm 19 in section 8.4.3 of Saber spec.
-template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, bool uniform_sampling>
 inline void
-decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt,
-        std::span<const uint8_t, saber_utils::pke_sklen<L, EQ>()> skey,
-        std::span<uint8_t, 32> msg)
-  requires(saber_params::validate_pke_decrypt_args(L, EQ, EP, ET, MU))
+decrypt(std::span<const uint8_t, saber_utils::pke_ctlen<L, EP, ET>()> ctxt, std::span<const uint8_t, saber_utils::pke_sklen<L, EQ>()> skey, std::span<uint8_t, 32> msg)
+  requires(saber_params::validate_pke_decrypt_args(L, EQ, EP, ET, MU, uniform_sampling))
 {
   constexpr uint16_t Q = 1u << EQ;
   constexpr uint16_t P = 1u << EP;

@@ -1,7 +1,7 @@
 #pragma once
-#include "cbd.hpp"
 #include "params.hpp"
 #include "polynomial.hpp"
+#include "sampling.hpp"
 #include "shake128.hpp"
 
 // Operations defined over matrix/ vector of polynomials.
@@ -18,53 +18,26 @@ private:
 public:
   // Constructors
   inline constexpr poly_matrix_t() = default;
-  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>& arr)
-  {
-    elements = arr;
-  }
-  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>&& arr)
-  {
-    elements = arr;
-  }
-  inline constexpr poly_matrix_t(
-    const std::array<poly::poly_t<moduli>, rows * cols>& arr)
-  {
-    elements = arr;
-  }
-  inline constexpr poly_matrix_t(
-    const std::array<poly::poly_t<moduli>, rows * cols>&& arr)
-  {
-    elements = arr;
-  }
+  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>& arr) { elements = arr; }
+  inline constexpr poly_matrix_t(std::array<poly::poly_t<moduli>, rows * cols>&& arr) { elements = arr; }
+  inline constexpr poly_matrix_t(const std::array<poly::poly_t<moduli>, rows * cols>& arr) { elements = arr; }
+  inline constexpr poly_matrix_t(const std::array<poly::poly_t<moduli>, rows * cols>&& arr) { elements = arr; }
 
   // Given linearized matrix index, returns reference to requested element polynomial.
   // `idx` must ∈ [0, rows * cols).
-  inline constexpr poly::poly_t<moduli>& operator[](const size_t idx)
-  {
-    return this->elements[idx];
-  }
+  inline constexpr poly::poly_t<moduli>& operator[](const size_t idx) { return this->elements[idx]; }
 
   // Given linearized matrix index, returns const reference to requested element
   // polynomial. `idx` must ∈ [0, rows * cols).
-  inline constexpr const poly::poly_t<moduli>& operator[](const size_t idx) const
-  {
-    return this->elements[idx];
-  }
+  inline constexpr const poly::poly_t<moduli>& operator[](const size_t idx) const { return this->elements[idx]; }
 
   // Given row and column index of matrix, returns reference to requested
   // element polynomial.
-  inline constexpr poly::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx)
-  {
-    return this->elements[idx.first * cols + idx.second];
-  }
+  inline constexpr poly::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx) { return this->elements[idx.first * cols + idx.second]; }
 
   // Given row and column index of matrix, returns const reference to requested
   // element polynomial.
-  inline constexpr const poly::poly_t<moduli>& operator[](
-    std::pair<size_t, size_t> idx) const
-  {
-    return this->elements[idx.first * cols + idx.second];
-  }
+  inline constexpr const poly::poly_t<moduli>& operator[](std::pair<size_t, size_t> idx) const { return this->elements[idx.first * cols + idx.second]; }
 
   // Given a byte array of length rows * log2(moduli) * 32 -bytes, this routine
   // can be used for transforming it into a vector of polynomials, following
@@ -80,8 +53,7 @@ public:
   }
 
   // Adds two polynomial matrices/ vectors of equal dimension.
-  inline constexpr poly_matrix_t<rows, cols, moduli> operator+(
-    const poly_matrix_t<rows, cols, moduli>& rhs) const
+  inline constexpr poly_matrix_t<rows, cols, moduli> operator+(const poly_matrix_t<rows, cols, moduli>& rhs) const
   {
     std::array<poly::poly_t<moduli>, rows * cols> res{};
 
@@ -145,8 +117,7 @@ public:
   // a matrix vector multiplication, returning a vector mv ∈ Rq^(l×1), following
   // algorithm 13 of spec.
   template<size_t rhs_rows>
-  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(
-    const poly_matrix_t<rhs_rows, 1, moduli>& vec)
+  inline poly_matrix_t<rows, 1, moduli> mat_vec_mul(const poly_matrix_t<rhs_rows, 1, moduli>& vec)
     requires((rows == cols) && (cols == rhs_rows))
   {
     poly_matrix_t<rows, 1, moduli> res;
@@ -181,8 +152,7 @@ public:
   // this routine generates a matrix A ∈ Rq^(l×l), following algorithm 15 of
   // spec.
   template<size_t seedBytes>
-  inline static poly_matrix_t<rows, cols, moduli> gen_matrix(
-    std::span<const uint8_t, seedBytes> seed)
+  inline static poly_matrix_t<rows, cols, moduli> gen_matrix(std::span<const uint8_t, seedBytes> seed)
     requires(rows == cols)
   {
     constexpr size_t ϵ = saber_params::log2(moduli);
@@ -209,13 +179,14 @@ public:
     return mat;
   }
 
-  // Given random byte string ( seed ) of length `seedBytes` as input, this routine
-  // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from a centered
-  // binomial distribution β_μ, following algorithm 16 of Saber spec.
-  template<size_t seedBytes, size_t mu>
-  inline static poly_matrix_t<rows, 1, moduli> gen_secret(
-    std::span<const uint8_t, seedBytes> seed)
-    requires((cols == 1) && saber_params::is_even(mu))
+  // Given a random byte string ( seed ) of length `seedBytes` as input, this routine
+  // outputs a secret vector v ∈ Rq^(l×1) with its coefficients sampled from either a
+  // centered binomial distribution β_μ ( if uniform_sampling = false ) or a centered
+  // uniform distribution U_μ ( if uniform_sampling = true ), following algorithm 16 of
+  // Saber spec.
+  template<bool uniform_sampling, size_t seedBytes, size_t mu>
+  inline static poly_matrix_t<rows, 1, moduli> gen_secret(std::span<const uint8_t, seedBytes> seed)
+    requires((cols == 1) && saber_params::validate_gen_secret_args(uniform_sampling, mu))
   {
     constexpr size_t poly_blen = (poly::N * mu) / 8;
     constexpr size_t buf_blen = rows * poly_blen;
@@ -231,9 +202,17 @@ public:
     hasher.squeeze(_buf);
     hasher.reset();
 
+    using poly_t_ = std::span<const uint8_t, poly_blen>;
+
     for (size_t i = 0; i < rows; i++) {
       const size_t off = i * poly_blen;
-      vec[i] = saber_utils::cbd<moduli, mu>(_buf.subspan(off, poly_blen));
+      auto __buf = poly_t_(_buf.subspan(off, poly_blen));
+
+      if constexpr (uniform_sampling) {
+        vec[i] = saber_utils::uniform_sample<moduli>(__buf);
+      } else {
+        vec[i] = saber_utils::cbd<moduli, mu>(__buf);
+      }
     }
 
     return vec;

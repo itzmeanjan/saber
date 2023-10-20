@@ -29,10 +29,12 @@ test_poly_conversion()
 TEST(SaberKEM, PolynomialConversion)
 {
   test_poly_conversion<(1 << 1)>();
+  test_poly_conversion<(1 << 2)>();
   test_poly_conversion<(1 << 3)>();
   test_poly_conversion<(1 << 4)>();
   test_poly_conversion<(1 << 5)>();
   test_poly_conversion<(1 << 6)>();
   test_poly_conversion<(1 << 10)>();
+  test_poly_conversion<(1 << 12)>();
   test_poly_conversion<(1 << 13)>();
 }

@@ -5,13 +5,7 @@
 #include <cassert>
 
 // Benchmark Saber KEM key generation algorithm for various suggested parameters.
-template<size_t L,
-         size_t EQ,
-         size_t EP,
-         size_t MU,
-         size_t seedBytes,
-         size_t noiseBytes,
-         size_t keyBytes>
+template<size_t L, size_t EQ, size_t EP, size_t MU, size_t seedBytes, size_t noiseBytes, size_t keyBytes, bool uniform_sampling>
 void
 keygen(benchmark::State& state)
 {
@@ -37,8 +31,7 @@ keygen(benchmark::State& state)
   auto _skey = std::span<uint8_t, sklen>(skey);
 
   for (auto _ : state) {
-    saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes>(
-      _seedA, _seedS, _z, _pkey, _skey);
+    _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(_seedA, _seedS, _z, _pkey, _skey);
 
     benchmark::DoNotOptimize(_seedA);
     benchmark::DoNotOptimize(_seedS);
@@ -52,14 +45,7 @@ keygen(benchmark::State& state)
 }
 
 // Benchmark Saber KEM encapsulation algorithm for various suggested parameters.
-template<size_t L,
-         size_t EQ,
-         size_t EP,
-         size_t ET,
-         size_t MU,
-         size_t seedBytes,
-         size_t noiseBytes,
-         size_t keyBytes>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes, size_t noiseBytes, size_t keyBytes, bool uniform_sampling>
 void
 encaps(benchmark::State& state)
 {
@@ -92,11 +78,10 @@ encaps(benchmark::State& state)
   auto _ctxt = std::span<uint8_t, ctlen>(ctxt);
   auto _seskey = std::span<uint8_t, sha3_256::DIGEST_LEN>(seskey);
 
-  saber_kem::keygen<L, EQ, EP, MU>(_seedA, _seedS, _z, _pkey, _skey);
+  _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(_seedA, _seedS, _z, _pkey, _skey);
 
   for (auto _ : state) {
-    saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(
-      _m, _pkey, _ctxt, _seskey);
+    _saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(_m, _pkey, _ctxt, _seskey);
 
     benchmark::DoNotOptimize(_m);
     benchmark::DoNotOptimize(_pkey);
@@ -109,14 +94,7 @@ encaps(benchmark::State& state)
 }
 
 // Benchmark Saber KEM decapsulation algorithm for various suggested parameters.
-template<size_t L,
-         size_t EQ,
-         size_t EP,
-         size_t ET,
-         size_t MU,
-         size_t seedBytes,
-         size_t noiseBytes,
-         size_t keyBytes>
+template<size_t L, size_t EQ, size_t EP, size_t ET, size_t MU, size_t seedBytes, size_t noiseBytes, size_t keyBytes, bool uniform_sampling>
 void
 decaps(benchmark::State& state)
 {
@@ -151,12 +129,11 @@ decaps(benchmark::State& state)
   auto _seskey0 = std::span<uint8_t, sha3_256::DIGEST_LEN>(seskey0);
   auto _seskey1 = std::span<uint8_t, sha3_256::DIGEST_LEN>(seskey1);
 
-  saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes>(
-    _seedA, _seedS, _z, _pkey, _skey);
-  saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(_m, _pkey, _ctxt, _seskey0);
+  _saber_kem::keygen<L, EQ, EP, MU, seedBytes, noiseBytes, keyBytes, uniform_sampling>(_seedA, _seedS, _z, _pkey, _skey);
+  _saber_kem::encaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(_m, _pkey, _ctxt, _seskey0);
 
   for (auto _ : state) {
-    saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes>(_ctxt, _skey, _seskey1);
+    _saber_kem::decaps<L, EQ, EP, ET, MU, seedBytes, keyBytes, uniform_sampling>(_ctxt, _skey, _seskey1);
 
     benchmark::DoNotOptimize(_ctxt);
     benchmark::DoNotOptimize(_skey);
@@ -168,15 +145,31 @@ decaps(benchmark::State& state)
   state.SetItemsProcessed(state.iterations());
 }
 
-// Register for benchmarking LightSaber, Saber and FireSaber KEM routines.
-BENCHMARK(keygen<2, 13, 10, 10, 32, 32, 32>)->Name("lightsaber/keygen");
-BENCHMARK(encaps<2, 13, 10, 3, 10, 32, 32, 32>)->Name("lightsaber/encaps");
-BENCHMARK(decaps<2, 13, 10, 3, 10, 32, 32, 32>)->Name("lightsaber/decaps");
+const auto compute_min = [](const std::vector<double>& v) -> double { return *std::min_element(v.begin(), v.end()); };
+const auto compute_max = [](const std::vector<double>& v) -> double { return *std::max_element(v.begin(), v.end()); };
 
-BENCHMARK(keygen<3, 13, 10, 8, 32, 32, 32>)->Name("saber/keygen");
-BENCHMARK(encaps<3, 13, 10, 4, 8, 32, 32, 32>)->Name("saber/encaps");
-BENCHMARK(decaps<3, 13, 10, 4, 8, 32, 32, 32>)->Name("saber/decaps");
+// Register for benchmarking LightSaber, Saber, FireSaber, uLightSaber, uSaber and
+// uFireSaber KEM routines.
+BENCHMARK(keygen<2, 13, 10, 10, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("lightsaber/keygen");
+BENCHMARK(encaps<2, 13, 10, 3, 10, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("lightsaber/encaps");
+BENCHMARK(decaps<2, 13, 10, 3, 10, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("lightsaber/decaps");
 
-BENCHMARK(keygen<4, 13, 10, 6, 32, 32, 32>)->Name("firesaber/keygen");
-BENCHMARK(encaps<4, 13, 10, 6, 6, 32, 32, 32>)->Name("firesaber/encaps");
-BENCHMARK(decaps<4, 13, 10, 6, 6, 32, 32, 32>)->Name("firesaber/decaps");
+BENCHMARK(keygen<3, 13, 10, 8, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("saber/keygen");
+BENCHMARK(encaps<3, 13, 10, 4, 8, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("saber/encaps");
+BENCHMARK(decaps<3, 13, 10, 4, 8, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("saber/decaps");
+
+BENCHMARK(keygen<4, 13, 10, 6, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("firesaber/keygen");
+BENCHMARK(encaps<4, 13, 10, 6, 6, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("firesaber/encaps");
+BENCHMARK(decaps<4, 13, 10, 6, 6, 32, 32, 32, false>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("firesaber/decaps");
+
+BENCHMARK(keygen<2, 12, 10, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("ulightsaber/keygen");
+BENCHMARK(encaps<2, 12, 10, 3, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("ulightsaber/encaps");
+BENCHMARK(decaps<2, 12, 10, 3, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("ulightsaber/decaps");
+
+BENCHMARK(keygen<3, 12, 10, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("usaber/keygen");
+BENCHMARK(encaps<3, 12, 10, 4, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("usaber/encaps");
+BENCHMARK(decaps<3, 12, 10, 4, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("usaber/decaps");
+
+BENCHMARK(keygen<4, 12, 10, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("ufiresaber/keygen");
+BENCHMARK(encaps<4, 12, 10, 6, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("ufiresaber/encaps");
+BENCHMARK(decaps<4, 12, 10, 6, 2, 32, 32, 32, true>)->ComputeStatistics("min", compute_min)->ComputeStatistics("max", compute_max)->Name("ufiresaber/decaps");
